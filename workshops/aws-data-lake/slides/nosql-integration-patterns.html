@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NoSQL Integration Patterns &amp; Architecture</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f1f5f9;
+      color: #1e293b;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .slide {
+      width: 1280px;
+      min-height: 720px;
+      margin: 40px auto;
+      padding: 44px 64px 48px;
+      border-radius: 14px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 8px 32px rgba(0,0,0,.10);
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+    }
+
+    hr.divider {
+      width: 1280px;
+      margin: 0 auto;
+      border: none;
+      border-top: 1px solid #e2e8f0;
+    }
+
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 26px;
+    }
+
+    .module-pill {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      padding: 5px 14px;
+      border-radius: 20px;
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #93c5fd;
+    }
+
+    .slide-num { font-size: 12px; color: #94a3b8; letter-spacing: .06em; }
+
+    h1 { font-size: 34px; font-weight: 800; color: #0f172a; line-height: 1.18; margin-bottom: 6px; }
+    .sub { font-size: 14px; color: #64748b; margin-bottom: 28px; }
+    h2 { font-size: 26px; font-weight: 800; color: #0f172a; line-height: 1.2; margin-bottom: 6px; }
+
+    .red { color: #dc2626; } .orange { color: #ea580c; } .yellow { color: #d97706; }
+    .green { color: #16a34a; } .blue { color: #2563eb; } .purple { color: #7c3aed; }
+    .cyan { color: #0e7490; } .slate { color: #475569; }
+
+    code {
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      background: #f1f5f9;
+      padding: 2px 6px;
+      border-radius: 3px;
+      color: #0369a1;
+    }
+
+    pre {
+      background: #0f172a;
+      color: #e2e8f0;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      padding: 16px 18px;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 10px 0;
+    }
+    pre code { background: transparent; color: #e2e8f0; padding: 0; }
+    pre .c { color: #64748b; }
+    pre .s { color: #86efac; }
+    pre .k { color: #93c5fd; }
+
+    .key-bar {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      margin-top: auto;
+      padding: 11px 18px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 7px;
+      font-size: 12.5px;
+    }
+
+    .kb-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: #1d4ed8;
+      margin-right: 14px;
+      white-space: nowrap;
+    }
+    .kb-text { color: #374151; line-height: 1.5; }
+    .kb-text strong { color: #0f172a; }
+    .kb-source { color: #94a3b8; font-size: 11px; margin-left: 6px; }
+
+    .card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 18px 20px;
+    }
+    .card h3 { font-size: 11px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; margin-bottom: 12px; color: #1d4ed8; }
+    .card ul { list-style: none; font-size: 13px; color: #374151; line-height: 1.75; }
+    .card ul li::before { content: "→ "; font-weight: 700; color: #1d4ed8; }
+
+    table.aws-table { width: 100%; border-collapse: collapse; font-size: 12.5px; margin: 10px 0; }
+    table.aws-table th {
+      background: #eff6ff; color: #1e3a8a; font-weight: 800; text-align: left;
+      padding: 10px 12px; border: 1px solid #dbeafe; font-size: 11px;
+      letter-spacing: .04em; text-transform: uppercase;
+    }
+    table.aws-table td { padding: 10px 12px; border: 1px solid #e2e8f0; color: #374151; line-height: 1.5; vertical-align: top; }
+    table.aws-table tr:nth-child(even) td { background: #f8fafc; }
+    table.aws-table td:first-child { font-weight: 700; color: #0f172a; }
+
+    /* three-category cards */
+    .cat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; flex: 1; }
+    .cat-card { border-radius: 10px; padding: 18px; border: 1px solid; display: flex; flex-direction: column; gap: 10px; }
+    .cat-card .cc-badge { font-size: 10px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; padding: 3px 10px; border-radius: 4px; width: fit-content; }
+    .cat-card h3 { font-size: 16px; font-weight: 800; }
+    .cat-card ul { list-style: none; font-size: 12px; color: #374151; line-height: 1.65; flex: 1; }
+    .cat-card ul li::before { content: "▸ "; }
+    .cc-rel { background: #eff6ff; border-color: #93c5fd; } .cc-rel .cc-badge { background: #dbeafe; color: #1e3a8a; } .cc-rel h3 { color: #1e3a8a; } .cc-rel ul li::before { color: #3b82f6; }
+    .cc-nosql { background: #fff7ed; border-color: #fdba74; } .cc-nosql .cc-badge { background: #fed7aa; color: #9a3412; } .cc-nosql h3 { color: #9a3412; } .cc-nosql ul li::before { color: #f97316; }
+    .cc-olap { background: #faf5ff; border-color: #c4b5fd; } .cc-olap .cc-badge { background: #ede9fe; color: #4c1d95; } .cc-olap h3 { color: #4c1d95; } .cc-olap ul li::before { color: #a78bfa; }
+
+    /* decision criteria list */
+    .criteria-grid { display: flex; flex-direction: column; gap: 10px; flex: 1; }
+    .criteria-row { display: grid; grid-template-columns: 220px 1fr; gap: 16px; align-items: start; padding: 12px 16px; border-radius: 8px; border-left: 4px solid #1d4ed8; background: #f8fafc; }
+    .criteria-row .cr-name { font-size: 13px; font-weight: 800; color: #0f172a; }
+    .criteria-row .cr-detail { font-size: 12.5px; color: #374151; line-height: 1.6; }
+    .criteria-row .cr-detail b { color: #1d4ed8; }
+
+    /* pipeline flow */
+    .flow-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 14px 0; }
+    .flow-step { background: #eff6ff; border: 1px solid #93c5fd; border-radius: 8px; padding: 12px 16px; font-size: 12.5px; font-weight: 700; color: #1e3a8a; text-align: center; flex: 1; min-width: 140px; }
+    .flow-arrow { font-size: 20px; color: #94a3b8; font-weight: 800; }
+
+    .fact-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 14px; }
+    .fact-chip { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 14px; text-align: center; }
+    .fact-chip .fc-num { font-size: 20px; font-weight: 800; color: #1d4ed8; }
+    .fact-chip .fc-label { font-size: 11px; color: #64748b; margin-top: 2px; }
+
+    /* zone cards (raw/enriched/consolidated) reused visual language */
+    .zones-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; flex: 1; }
+    .zone-card { border-radius: 10px; padding: 18px; border: 1px solid; display: flex; flex-direction: column; gap: 10px; }
+    .zone-card .z-badge { font-size: 10px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; padding: 3px 10px; border-radius: 4px; width: fit-content; }
+    .zone-card h3 { font-size: 15px; font-weight: 800; }
+    .zone-card ul { list-style: none; font-size: 12px; color: #374151; line-height: 1.65; flex: 1; }
+    .zone-card ul li::before { content: "▸ "; }
+    .z-raw { background: #fff7ed; border-color: #fdba74; } .z-raw .z-badge { background: #fed7aa; color: #9a3412; } .z-raw h3 { color: #9a3412; } .z-raw ul li::before { color: #f97316; }
+    .z-enr { background: #fefce8; border-color: #fde047; } .z-enr .z-badge { background: #fef08a; color: #854d0e; } .z-enr h3 { color: #854d0e; } .z-enr ul li::before { color: #eab308; }
+    .z-con { background: #f0fdf4; border-color: #86efac; } .z-con .z-badge { background: #dcfce7; color: #166534; } .z-con h3 { color: #166534; } .z-con ul li::before { color: #22c55e; }
+
+    /* security pillar grid */
+    .sec-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; flex: 1; }
+    .sec-col { border-radius: 10px; padding: 16px; border-left: 4px solid; background: #f8fafc; }
+    .sec-col h3 { font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; margin-bottom: 10px; }
+    .sec-col ul { list-style: none; font-size: 12px; color: #374151; line-height: 1.65; }
+    .sec-col ul li::before { content: "▸ "; }
+    .sec-iam { border-color: #7c3aed; } .sec-iam h3 { color: #6d28d9; } .sec-iam ul li::before { color: #a78bfa; }
+    .sec-vpc { border-color: #0e7490; } .sec-vpc h3 { color: #0e7490; } .sec-vpc ul li::before { color: #22d3ee; }
+    .sec-kms { border-color: #d97706; } .sec-kms h3 { color: #b45309; } .sec-kms ul li::before { color: #eab308; }
+
+    /* architecture layers (reused pattern) */
+    .arch-layers { display: flex; flex-direction: column; gap: 8px; flex: 1; }
+    .arch-layer { display: grid; grid-template-columns: 200px 1fr; align-items: start; gap: 16px; padding: 12px 16px; border-radius: 8px; border-left: 4px solid; }
+    .al-label { display: flex; align-items: center; gap: 10px; }
+    .al-icon { font-size: 20px; }
+    .al-name { font-size: 13px; font-weight: 800; }
+    .al-zone { font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; margin-top: 2px; }
+    .al-items { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding-top: 2px; }
+    .al-chip { font-size: 11.5px; font-weight: 600; padding: 3px 10px; border-radius: 4px; border: 1px solid; white-space: nowrap; }
+    .al-chip.emph { border-width: 2px; font-weight: 800; }
+    .l-store { background: #fff7ed; border-color: #f97316; } .l-store .al-name { color: #9a3412; } .l-store .al-zone { color: #f97316; } .l-store .al-chip { background: #ffedd5; border-color: #fdba74; color: #9a3412; }
+
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; flex: 1; }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════ TOPIC 1 · SLIDE 1 — Concept ═══════════════ -->
+<div class="slide">
+  <div class="top-bar">
+    <div class="module-pill">NoSQL Integration Patterns</div>
+    <div class="slide-num">1 / 14</div>
+  </div>
+
+  <h1>Three Data Store Categories, Three Different Jobs</h1>
+  <p class="sub">Every enterprise platform ends up with all three — the question is never "which one wins," it's "which job is this"</p>
+
+  <div class="cat-grid">
+    <div class="cat-card cc-rel">
+      <div class="cc-badge">Relational (OLTP)</div>
+      <h3>Aurora / RDS</h3>
+      <ul>
+        <li>Structured data in tables, rows, columns</li>
+        <li>Supports complex queries through joins</li>
+        <li>Best fit for less predictable query patterns</li>
+        <li>Migrating/modernizing on-prem relational workloads</li>
+      </ul>
+    </div>
+    <div class="cat-card cc-nosql">
+      <div class="cc-badge">Non-Relational (OLTP)</div>
+      <h3>DynamoDB / DocumentDB</h3>
+      <ul>
+        <li>Key-value, document, and other flexible models</li>
+        <li>Optimized for large volumes, low latency</li>
+        <li>Relaxes some consistency for scale + speed</li>
+        <li>Session stores, catalogs, high-throughput apps</li>
+      </ul>
+    </div>
+    <div class="cat-card cc-olap">
+      <div class="cc-badge">Analytical (OLAP)</div>
+      <h3>Redshift</h3>
+      <ul>
+        <li>Fully managed cloud data warehousing</li>
+        <li>Handles large-scale analytics workloads</li>
+        <li>Store and analyze massive data quickly</li>
+        <li>Historical, aggregate, cross-source queries</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="key-bar">
+    <span class="kb-label">Key Distinction</span>
+    <span class="kb-text">AWS's own database decision guide splits databases into <strong>OLTP</strong> (relational + non-relational, this slide's left two cards) and <strong>OLAP</strong> — "to store and analyze massive amounts of data quickly and efficiently... AWS offers Amazon Redshift."<span class="kb-source">Source: AWS Decision Guide — Choosing an AWS database service</span></span>
+  </div>
+</div>
+
+<hr class="divider" />
+
+<!-- ═══════════════ TOPIC 1 · SLIDE 2 — Example ═══════════════ -->
+<div class="slide">
+  <div class="top-bar">
+    <div class="module-pill">NoSQL Integration Patterns</div>
+    <div class="slide-num">2 / 14</div>
+  </div>
+
+  <h2>AWS's Own Comparison Table</h2>
+  <p class="sub">Straight from the official AWS Decision Guide — not a paraphrase</p>
+
+  <table class="aws-table">
+    <thead>
+      <tr><th>Data Model</th><th>When Would You Use It?</th><th>What Is It Optimized For?</th><th>Engines</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Relational</td>
+        <td>Migrating or modernizing an on-premises relational workload, or workloads with less predictable query patterns</td>
+        <td>Structured data stored in tables, rows, and columns; supports complex queries through joins</td>
+        <td>Aurora, Amazon RDS</td>
+      </tr>
+      <tr>
+        <td>Key-value</td>
+        <td>Session stores or shopping carts — needs to scale to large data volumes and extremely high request throughput</td>
+        <td>Serverless, NoSQL, fully managed, single-digit millisecond performance at any scale</td>
+        <td>Amazon DynamoDB</td>
+      </tr>
+      <tr>
+        <td>Document</td>
+        <td>Storing JSON-like documents with rich querying abilities across document fields</td>
+        <td>Semi-structured data as documents with multilayered attributes</td>
+        <td>Amazon DocumentDB</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="key-bar">
+    <span class="kb-label">Verbatim Quote</span>
+    <span class="kb-text">"Usually, you can cover your application requirements with a mix of best-fit databases... you might use Amazon DocumentDB (for product catalogs and user profiles)... but then combine it with... DynamoDB (for when your users are browsing your product catalog). You might also add Aurora for inventory and order processing."<span class="kb-source">Source: AWS Decision Guide — Choosing an AWS database service</span></span>
+  </div>
+</div>
+
+<hr class="divider" />
+
+<!-- ═══════════════ TOPIC 2 · SLIDE 1 — Concept ═══════════════ -->
+<div class="slide">
+  <div class="top-bar">
+    <div class="module-pill">NoSQL Integration Patterns</div>
+    <div class="slide-num">3 / 14</div>
+  </div>
+
+  <h1>A Framework for the DynamoDB / DocumentDB / RDS / Redshift / Athena Decision</h1>
+  <p class="sub">Six questions that narrow five services down to one</p>
+
+  <div class="criteria-grid">
+    <div class="criteria-row">
+      <div class="cr-name">Access pattern</div>
+      <div class="cr-detail">Known key lookups → <b>DynamoDB</b>. Rich document queries → <b>DocumentDB</b>. Ad-hoc joins → <b>RDS/Aurora</b>. Cross-source aggregate queries → <b>Redshift</b> or <b>Athena</b>.</div>
+    </div>
+    <div class="criteria-row">
+      <div class="cr-name">Schema flexibility</div>
+      <div class="cr-detail">Fixed, well-known schema → relational. Evolving / semi-structured attributes per item → <b>DynamoDB</b> or <b>DocumentDB</b>.</div>
+    </div>
+    <div class="criteria-row">
+      <div class="cr-name">Latency requirement</div>
+      <div class="cr-detail">Single-digit millisecond at any scale → <b>DynamoDB</b>. Seconds-to-minutes for large scans → <b>Redshift</b>/<b>Athena</b> are fine.</div>
+    </div>
+    <div class="criteria-row">
+      <div class="cr-name">Query complexity</div>
+      <div class="cr-detail">Multi-table joins, transactions → relational. Single-item or single-collection operations → NoSQL. Multi-way historical joins → <b>Redshift</b>.</div>
+    </div>
+    <div class="criteria-row">
+      <div class="cr-name">Data freshness for analytics</div>
+      <div class="cr-detail">Query data in place, infrequently, no infra to manage → <b>Athena over S3</b>. Frequent, high-concurrency BI → <b>Redshift</b>.</div>
+    </div>
+    <div class="criteria-row">
+      <div class="cr-name">Operational scale</div>
+      <div class="cr-detail">Millions of requests/sec, unpredictable traffic → <b>DynamoDB</b> on-demand. Steady, predictable enterprise workload → <b>RDS/Aurora</b>.</div>
+    </div>
+  </div>
+
+  <div class="key-bar">
+    <span class="kb-label">Honest Framing</span>
+    <span class="kb-text">AWS does not publish one page that ranks DynamoDB vs. DocumentDB vs. RDS vs. Redshift vs. Athena side by side — this criteria list is an <strong>editorial synthesis</strong> built from each service's own documented strengths. Tell students they're synthesizing, not citing a single source.</span>
+  </div>
+</div>
+
+<hr class="divider" />
+
+<!-- ═══════════════ TOPIC 2 · SLIDE 2 — Example ═══════════════ -->
+<div class="slide">
+  <div class="top-bar">
+    <div class="module-pill">NoSQL Integration Patterns</div>
+    <div class="slide-num">4 / 14</div>
+  </div>
+
+  <h2>One Real Platform, Three Databases at Once</h2>
+  <p class="sub">AWS's own worked example of the framework in practice — an e-commerce platform</p>
+
+  <div class="two-col">
+    <div class="card" style="border-left:4px solid #9a3412;">
+      <h3 style="color:#9a3412;">DocumentDB</h3>
+      <ul style="--dot:#f97316;">
+        <li>Product catalogs</li>
+        <li>User profiles</li>
+      </ul>
+      <p style="font-size:12px;color:#64748b;margin-top:10px;">Chosen for the flexibility of semi-structured data — catalog attributes vary by product category.</p>
+    </div>
+    <div class="card" style="border-left:4px solid #1e3a8a;">
+      <h3 style="color:#1e3a8a;">DynamoDB</h3>
+      <ul>
+        <li>Product catalog browsing</li>
+      </ul>
+      <p style="font-size:12px;color:#64748b;margin-top:10px;">Chosen for low, predictable latency while users are actively browsing — the highest-traffic, most latency-sensitive path.</p>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px;border-left:4px solid #166534;">
+    <h3 style="color:#166534;">Aurora</h3>
+    <ul>
+      <li>Inventory and order processing</li>
+    </ul>
+    <p style="font-size:12px;color:#64748b;margin-top:10px;">Chosen because this workload needs a relational data model and transaction support — orders must be atomic and consistent.</p>
+  </div>
+
+  <div class="key-bar">
+    <span class="kb-label">Takeaway</span>
+    <span class="kb-text">One business function, one platform, <strong>three purpose-built databases</strong> — each chosen for what it's optimized for, not because one database "won."<span class="kb-source">Source: AWS Decision Guide — Choosing an AWS database service</span></span>
+  </div>
+</div>
+
+<hr class="divider" />
+
+<!-- ═══════════════ TOPIC 3 · SLIDE 1 — Concept ═══════════════ -->
+<div class="slide">
+  <div class="top-bar">
+    <div class="module-pill">NoSQL Integration Patterns</div>
+    <div class="slide-num">5 / 14</div>
+  </div>
+
+  <h1>Event-Driven Pattern: DynamoDB Streams → Lambda → Downstream</h1>
+  <p class="sub">Turning every table mutation into an action, without polling anything</p>
+
+  <div class="flow-row">
+    <div class="flow-step">Item created / updated / deleted</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">DynamoDB Streams records the change</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">Lambda trigger fires</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">S3 / Redshift / any action you write</div>
+  </div>
+
+  <div class="card" style="margin-top:10px;">
+    <h3>How AWS Documents This</h3>
+    <ul>
+      <li>You associate a stream's ARN with a Lambda function you write — a <strong>trigger</strong></li>
+      <li>All mutation actions to the table can be captured as an item on the stream</li>
+      <li>The Lambda function can send a notification, initiate a workflow, or copy each stream record to persistent storage (e.g. S3) as a permanent audit trail</li>
+    </ul>
+  </div>
+
+  <div class="fact-strip">
+    <div class="fact-chip"><div class="fc-num">4×/sec</div><div class="fc-label">Lambda polls the stream this often</div></div>
+    <div class="fact-chip"><div class="fc-num">2</div><div class="fc-label">max Lambda functions per stream before read throttling risk</div></div>
+    <div class="fact-chip"><div class="fc-num">Sync</div><div class="fc-label">Lambda is invoked synchronously per batch</div></div>
+  </div>
+
+  <div class="key-bar">
+    <span class="kb-label">Best Practice</span>
+    <span class="kb-text">Keep the Lambda function <strong>short-lived</strong> and avoid complex logic. For high-velocity streams, trigger an asynchronous Step Functions workflow rather than a long-running synchronous Lambda.<span class="kb-source">Source: DynamoDB Streams and AWS Lambda triggers</span></span>
+  </div>
+</div>
+
+<hr class="divider" />
+
+<!-- ═══════════════ TOPIC 3 · SLIDE 2 — Example ═══════════════ -->
+<div class="slide">
+  <div class="top-bar">
+    <div class="module-pill">NoSQL Integration Patterns</div>
+    <div class="slide-num">6 / 14</div>
+  </div>
+
+  <h2>AWS's Own Example: GameScores → Lambda → Social Post</h2>
+  <p class="sub">The exact scenario AWS uses to explain DynamoDB Streams + Lambda triggers</p>
+
+  <div class="card" style="border-left:4px solid #1d4ed8;">
+    <h3>The Scenario, As AWS Documents It</h3>
+    <ul>
+      <li>A mobile gaming app writes to a <code>GameScores</code> table</li>
+      <li>Whenever the <code>TopScore</code> attribute of the table is updated, a corresponding stream record is written to the table's stream</li>
+      <li>This event triggers a Lambda function that posts a <strong>congratulatory message on a social media network</strong></li>
+      <li>The function is written to <strong>ignore</strong> any stream records that are not updates to <code>GameScores</code>, or that do not modify <code>TopScore</code></li>
+    </ul>
+  </div>
+
+  <div class="flow-row" style="margin-top:20px;">
+    <div class="flow-step">Player beats high score</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><code>TopScore</code> updated in table</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">Stream record written</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">Lambda filters, then posts congrats</div>
+  </div>
+
+  <div class="key-bar">
+    <span class="kb-label">Why This Example Matters</span>
+    <span class="kb-text">It shows the two things that make this pattern production-safe: <strong>filtering</strong> (ignore irrelevant events) and a single, narrow trigger condition — not "run this Lambda on every write."<span class="kb-source">Source: DynamoDB Streams and AWS Lambda triggers</span></span>
+  </div>
+</div>
+
+<hr class="divider" />
+
+<!-- ═══════════════ TOPIC 4 · SLIDE 1 — Concept ═══════════════ -->
+<div class="slide">
+  <div class="top-bar">
+    <div class="module-pill">NoSQL Integration Patterns</div>
+    <div class="slide-num">7 / 14</div>
+  </div>
+
+  <h1>DocumentDB Change Streams: CDC for the Document World</h1>
+  <p class="sub">Same idea as DynamoDB Streams, MongoDB-compatible API</p>
+
+  <div class="card">
+    <h3>What They Capture</h3>
+    <ul>
+      <li>A <strong>time-ordered sequence</strong> of change events within a cluster's collections</li>
+      <li>All change events supported by the MongoDB <code>watch()</code> API — insert, update, delete, replace</li>
+      <li>Must be <strong>explicitly enabled</strong> per collection, per database, or cluster-wide</li>
+    </ul>
+  </div>
+
+  <div class="fact-strip">
+    <div class="fact-chip"><div class="fc-num">3 hrs</div><div class="fc-label">default retention</div></div>
+    <div class="fact-chip"><div class="fc-num">7 days</div><div class="fc-label">maximum retention (configurable)</div></div>
+    <div class="fact-chip"><div class="fc-num">16 MB</div><div class="fc-label">max event size before a read failure</div></div>
+  </div>
+
+  <div class="card" style="margin-top:14px;">
+    <h3>Documented Use Cases</h3>
+    <ul>
+      <li>Change notification to downstream applications</li>
+      <li>Full-text search with <strong>Amazon OpenSearch Service</strong></li>
+      <li>Analytics with <strong>Amazon Redshift</strong></li>
+    </ul>
+  </div>
+
+  <div class="key-bar">
+    <span class="kb-label">Key Point</span>
+    <span class="kb-text">These are AWS's own stated use cases for change streams — the OpenSearch and Redshift integrations aren't a course invention.<span class="kb-source">Source: Using change streams with Amazon DocumentDB</span></span>
+  </div>
+</div>
+
+<hr class="divider" />
+
+<!-- ═══════════════ TOPIC 4 · SLIDE 2 — Example ═══════════════ -->
+<div class="slide">
+  <div class="top-bar">
+    <div class="module-pill">NoSQL Integration Patterns</div>
+    <div class="slide-num">8 / 14</div>
+  </div>
+
+  <h2>AWS's Official Python Example</h2>
+  <p class="sub">Verbatim from the Amazon DocumentDB Developer Guide</p>
+
+  <pre><code><span class="k">from</span> pymongo <span class="k">import</span> MongoClient, ReadPreference
+
+coll = db.get_collection(<span class="s">'foo'</span>, read_preference=ReadPreference.PRIMARY)
+<span class="c"># Create a stream object</span>
+stream = coll.watch()
+<span class="c"># Write a new document to the collection to generate a change event</span>
+coll.insert_one({<span class="s">'x'</span>: 1})
+<span class="c"># Read the next change event from the stream (if any)</span>
+print(stream.try_next())
+
+<span class="c">"""
+Expected Output:
+{'_id': {'_data': '015daf94f600000002010000000200009025'},
+'clusterTime': Timestamp(1571788022, 2),
+'documentKey': {'_id': ObjectId('5daf94f6ea258751778163d6')},
+'fullDocument': {'_id': ObjectId('5daf94f6ea258751778163d6'), 'x': 1},
+'ns': {'coll': 'foo', 'db': 'bar'},
+'operationType': 'insert'}
+"""</span></code></pre>
+
+  <div class="key-bar">
+    <span class="kb-label">Notice</span>
+    <span class="kb-text">The event includes <code>operationType</code> (insert/update/delete/replace) and <code>documentKey</code> — exactly the two fields a downstream consumer needs to route the event correctly, same shape as a DynamoDB Streams record's event name + keys.<span class="kb-source">Source: Using change streams with Amazon DocumentDB</span></span>
+  </div>
+</div>
+
+<hr class="divider" />
+
+<!-- ═══════════════ TOPIC 5 · SLIDE 1 — Concept ═══════════════ -->
+<div class="slide">
+  <div class="top-bar">
+    <div class="module-pill">NoSQL Integration Patterns</div>
+    <div class="slide-num">9 / 14</div>
+  </div>
+
+  <h1>Fitting NoSQL Into the Raw → Enriched → Consolidated Pipeline</h1>
+  <p class="sub">DynamoDB and DocumentDB aren't a separate silo — they're another CDC source feeding the same pipeline as Days 1-4</p>
+
+  <div class="zones-grid">
+    <div class="zone-card z-raw">
+      <div class="z-badge">Raw</div>
+      <h3>Landing Zone</h3>
+      <ul>
+        <li>DynamoDB Streams / Kinesis Data Streams for DynamoDB → S3</li>
+        <li>DocumentDB change streams → S3 (via a consumer app or Lambda)</li>
+        <li>Immutable, as-captured change events</li>
+      </ul>
+    </div>
+    <div class="zone-card z-enr">
+      <div class="z-badge">Enriched</div>
+      <h3>Transform Zone</h3>
+      <ul>
+        <li>Glue ETL / Lambda merges change events into curated tables</li>
+        <li>Schema conformance, dedup, before/after image handling</li>
+      </ul>
+    </div>
+    <div class="zone-card z-con">
+      <div class="z-badge">Consolidated</div>
+      <h3>Serving Zone</h3>
+      <ul>
+        <li>Redshift for BI / historical joins</li>
+        <li>Athena over S3 for ad-hoc query-in-place</li>
+        <li>OpenSearch for full-text / operational search</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="key-bar">
+    <span class="kb-label">Course Framing</span>
+    <span class="kb-text">"Raw → Enriched → Consolidated" is this program's own naming for the zone pattern — the underlying AWS concept (bronze/silver/gold, or raw/curated/serving) is standard, but this exact terminology is ours.</span>
+  </div>
+</div>
+
+<hr class="divider" />
+
+<!-- ═══════════════ TOPIC 5 · SLIDE 2 — Example ═══════════════ -->
+<div class="slide">
+  <div class="top-bar">
+    <div class="module-pill">NoSQL Integration Patterns</div>
+    <div class="slide-num">10 / 14</div>
+  </div>
+
+  <h2>Zero-ETL Integration: DynamoDB → Redshift, No Pipeline to Build</h2>
+  <p class="sub">A current, real AWS feature — not a CDC pipeline you build yourself</p>
+
+  <div class="card" style="border-left:4px solid #1d4ed8;">
+    <h3>What AWS Documents</h3>
+    <ul>
+      <li>"A fully managed solution that makes transactional and operational data available in Amazon Redshift... you don't need to maintain an ETL pipeline"</li>
+      <li>AWS automates the creation and management of data replication from the source to the Redshift warehouse</li>
+      <li>You continue to update and query source data while simultaneously using Redshift for analytics</li>
+    </ul>
+  </div>
+
+  <div class="flow-row" style="margin-top:16px;">
+    <div class="flow-step">DynamoDB table (source)</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">Zero-ETL integration<br/>(fully managed by AWS)</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">Redshift data warehouse</div>
+  </div>
+
+  <div class="card" style="margin-top:14px;">
+    <h3>Also-Supported Sources</h3>
+    <ul>
+      <li>Aurora MySQL / PostgreSQL, RDS for MySQL / Oracle / PostgreSQL — same zero-ETL mechanism, same target</li>
+    </ul>
+  </div>
+
+  <div class="key-bar">
+    <span class="kb-label">Why It Matters Here</span>
+    <span class="kb-text">This is the "Consolidated" zone shortcut for DynamoDB specifically — for some analytics use cases you don't need to build the Streams→Lambda→S3→Redshift pipeline at all.<span class="kb-source">Source: Amazon Redshift Management Guide — Zero-ETL integrations</span></span>
+  </div>
+</div>
+
+<hr class="divider" />
+
+<!-- ═══════════════ TOPIC 6 · SLIDE 1 — Concept ═══════════════ -->
+<div class="slide">
+  <div class="top-bar">
+    <div class="module-pill">NoSQL Integration Patterns</div>
+    <div class="slide-num">11 / 14</div>
+  </div>
+
+  <h1>Security Integration: Same Three Pillars as Day 3</h1>
+  <p class="sub">IAM, VPC, and KMS apply to DynamoDB and DocumentDB exactly as they applied to everything else this program has covered</p>
+
+  <div class="sec-grid">
+    <div class="sec-col sec-iam">
+      <h3>IAM</h3>
+      <ul>
+        <li>Centrally manage who can access which tables/collections</li>
+        <li>No usernames/passwords for DynamoDB access — IAM only</li>
+        <li>Fine-grained access control down to the <strong>attribute level</strong></li>
+      </ul>
+    </div>
+    <div class="sec-col sec-vpc">
+      <h3>VPC</h3>
+      <ul>
+        <li>Gateway endpoints and Interface endpoints (PrivateLink) for DynamoDB</li>
+        <li>No public internet exposure required for in-VPC access</li>
+        <li>DocumentDB clusters live inside a VPC by design</li>
+      </ul>
+    </div>
+    <div class="sec-col sec-kms">
+      <h3>KMS</h3>
+      <ul>
+        <li>All DynamoDB data encrypted at rest by default</li>
+        <li>Three key types: AWS owned, AWS managed, customer managed</li>
+        <li>Switch key types on an existing table without app changes</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="key-bar">
+    <span class="kb-label">Key Point</span>
+    <span class="kb-text">There is no separate "NoSQL security model" to learn — it's the identical IAM/VPC/KMS toolkit from Day 3, applied to two more services.</span>
+  </div>
+</div>
+
+<hr class="divider" />
+
+<!-- ═══════════════ TOPIC 6 · SLIDE 2 — Example ═══════════════ -->
+<div class="slide">
+  <div class="top-bar">
+    <div class="module-pill">NoSQL Integration Patterns</div>
+    <div class="slide-num">12 / 14</div>
+  </div>
+
+  <h2>DynamoDB's Actual Encryption &amp; Connectivity Options</h2>
+  <p class="sub">Specifics, straight from the AWS documentation</p>
+
+  <table class="aws-table">
+    <thead><tr><th>Mechanism</th><th>Type</th><th>What AWS Documents</th></tr></thead>
+    <tbody>
+      <tr><td>KMS key type</td><td>AWS owned key</td><td>Default encryption type — no additional charge</td></tr>
+      <tr><td>KMS key type</td><td>AWS managed key</td><td>Stored in your account, managed by AWS KMS — KMS charges apply</td></tr>
+      <tr><td>KMS key type</td><td>Customer managed key</td><td>Created, owned, and fully controlled by you — KMS charges apply</td></tr>
+      <tr><td>VPC endpoint</td><td>Gateway endpoint</td><td>Route table entry for DynamoDB access, no internet gateway or NAT needed</td></tr>
+      <tr><td>VPC endpoint</td><td>Interface endpoint</td><td>AWS PrivateLink — private IPs, works from on-premises or another Region's VPC too</td></tr>
+      <tr><td>IAM</td><td>Attribute-level policy</td><td>Fine-grained access control via IAM condition keys — authorize down to specific item attributes</td></tr>
+    </tbody>
+  </table>
+
+  <div class="key-bar">
+    <span class="kb-label">Verbatim Quote</span>
+    <span class="kb-text">"When you access an encrypted table, DynamoDB decrypts the table data transparently. You don't have to change any code or applications to use or manage encrypted tables."<span class="kb-source">Sources: DynamoDB encryption at rest · Securing DynamoDB connections using VPC endpoints and IAM policies</span></span>
+  </div>
+</div>
+
+<hr class="divider" />
+
+<!-- ═══════════════ TOPIC 7 · SLIDE 1 — Concept ═══════════════ -->
+<div class="slide">
+  <div class="top-bar">
+    <div class="module-pill">NoSQL Integration Patterns</div>
+    <div class="slide-num">13 / 14</div>
+  </div>
+
+  <h2>Where NoSQL Sits in the Five-Layer Platform</h2>
+  <p class="sub">DynamoDB and DocumentDB slot into the Store layer, alongside every other service this program has covered</p>
+
+  <div class="arch-layers">
+    <div class="arch-layer l-store">
+      <div class="al-label">
+        <span class="al-icon">🪣</span>
+        <div>
+          <div class="al-name">Store Layer</div>
+          <div class="al-zone">Where data lives — now including NoSQL</div>
+        </div>
+      </div>
+      <div class="al-items">
+        <span class="al-chip">S3 Raw</span>
+        <span class="al-chip">S3 Curated</span>
+        <span class="al-chip">Redshift</span>
+        <span class="al-chip">OpenSearch</span>
+        <span class="al-chip emph">DynamoDB</span>
+        <span class="al-chip emph">DocumentDB</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px;">
+    <h3>The Pattern, Not Just the Service</h3>
+    <ul>
+      <li>DynamoDB: operational state, job tracking, high-throughput key-value access — feeds analytics via Streams or zero-ETL</li>
+      <li>DocumentDB: flexible-schema operational data — feeds analytics via change streams</li>
+      <li>Both are sources into the same Raw → Enriched → Consolidated pipeline as every relational and file-based source before them</li>
+    </ul>
+  </div>
+
+  <div class="key-bar">
+    <span class="kb-label">Honest Framing</span>
+    <span class="kb-text">AWS doesn't publish a single "five-layer architecture" page — this blueprint is an editorial synthesis reused from earlier in the program, extended here to place NoSQL explicitly in the Store layer.</span>
+  </div>
+</div>
+
+<hr class="divider" />
+
+<!-- ═══════════════ TOPIC 7 · SLIDE 2 — Example ═══════════════ -->
+<div class="slide">
+  <div class="top-bar">
+    <div class="module-pill">NoSQL Integration Patterns</div>
+    <div class="slide-num">14 / 14</div>
+  </div>
+
+  <h2>This Program's Own Working Example</h2>
+  <p class="sub">Not an AWS doc example — this is the actual DynamoDB table built and tested earlier in this course</p>
+
+  <div class="card" style="border-left:4px solid #9a3412;">
+    <h3 style="color:#9a3412;">The Scenario</h3>
+    <ul>
+      <li>An aerospace/manufacturing enterprise's event-driven ingestion pipeline needs a job-state / metadata store</li>
+      <li>One DynamoDB table: partition key = Job ID, sort key = <code>METADATA</code> header or <code>STATUS#&lt;timestamp&gt;</code> event</li>
+      <li>Every status change is captured via DynamoDB Streams / Kinesis Data Streams for DynamoDB</li>
+    </ul>
+  </div>
+
+  <div class="flow-row" style="margin-top:16px;">
+    <div class="flow-step">Ingestion job status changes<br/>(STARTED → VALIDATING → COMPLETED)</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">Captured via Streams</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">Lands in S3 raw zone</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">Joins the same pipeline as every other source</div>
+  </div>
+
+  <div class="key-bar">
+    <span class="kb-label">Verified, Not Simulated</span>
+    <span class="kb-text">This exact pattern was built and live-tested this course — including confirming CDC fires correctly on Global Table replica writes, not just the origin write.</span>
+  </div>
+</div>
+
+</body>
+</html>

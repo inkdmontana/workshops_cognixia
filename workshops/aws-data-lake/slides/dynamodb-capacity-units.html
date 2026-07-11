@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DynamoDB Capacity &amp; Request Units</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f1f5f9;
+      color: #1e293b;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .slide {
+      width: 1280px;
+      min-height: 720px;
+      margin: 40px auto;
+      padding: 44px 64px 48px;
+      border-radius: 14px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 8px 32px rgba(0,0,0,.10);
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+    }
+
+    hr.divider { width: 1280px; margin: 0 auto; border: none; border-top: 1px solid #e2e8f0; }
+
+    .top-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 26px; }
+    .module-pill {
+      font-size: 11px; font-weight: 800; letter-spacing: .18em; text-transform: uppercase;
+      padding: 5px 14px; border-radius: 20px; background: #eff6ff; color: #1d4ed8; border: 1px solid #93c5fd;
+    }
+    .slide-num { font-size: 12px; color: #94a3b8; letter-spacing: .06em; }
+
+    h1 { font-size: 32px; font-weight: 800; color: #0f172a; line-height: 1.18; margin-bottom: 6px; }
+    .sub { font-size: 14px; color: #64748b; margin-bottom: 26px; }
+    h2 { font-size: 26px; font-weight: 800; color: #0f172a; line-height: 1.2; margin-bottom: 6px; }
+
+    code {
+      font-family: 'Courier New', monospace; font-size: 12px; background: #f1f5f9;
+      padding: 2px 6px; border-radius: 3px; color: #1d4ed8;
+    }
+
+    .key-bar {
+      display: flex; align-items: center; gap: 0; margin-top: auto; padding: 11px 18px;
+      background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 7px; font-size: 12.5px;
+    }
+    .kb-label {
+      font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+      color: #1d4ed8; margin-right: 14px; white-space: nowrap;
+    }
+    .kb-text { color: #374151; line-height: 1.5; }
+    .kb-text strong { color: #0f172a; }
+    .kb-source { color: #94a3b8; font-size: 11px; margin-left: 6px; }
+
+    .warn-bar {
+      display: flex; align-items: flex-start; gap: 12px; margin: 14px 0; padding: 13px 16px;
+      background: #fef2f2; border: 1px solid #fecaca; border-left: 4px solid #dc2626; border-radius: 8px;
+      font-size: 12.5px; color: #374151; line-height: 1.6;
+    }
+    .warn-bar .wb-icon { font-size: 16px; }
+    .warn-bar strong { color: #991b1b; }
+
+    table.aws-table { width: 100%; border-collapse: collapse; font-size: 12.5px; margin: 10px 0; }
+    table.aws-table th {
+      background: #eff6ff; color: #1e3a8a; font-weight: 800; text-align: left;
+      padding: 10px 12px; border: 1px solid #dbeafe; font-size: 11px; letter-spacing: .04em; text-transform: uppercase;
+    }
+    table.aws-table td { padding: 10px 12px; border: 1px solid #e2e8f0; color: #374151; line-height: 1.5; vertical-align: top; }
+    table.aws-table tr:nth-child(even) td { background: #f8fafc; }
+    table.aws-table td:first-child { font-weight: 700; color: #0f172a; }
+
+    .day-timeline { display: flex; flex-direction: column; gap: 10px; margin: 12px 0; }
+    .day-row { display: grid; grid-template-columns: 90px 1fr 160px; gap: 14px; align-items: center; padding: 12px 16px; border-radius: 8px; border-left: 4px solid #1d4ed8; background: #f8fafc; }
+    .day-row .dr-label { font-size: 12px; font-weight: 800; color: #1d4ed8; }
+    .day-row .dr-desc { font-size: 12px; color: #374151; line-height: 1.5; }
+    .day-row .dr-cost { font-size: 13px; font-weight: 800; color: #0f172a; text-align: right; }
+    .day-row .dr-cost span { display: block; font-size: 10px; font-weight: 500; color: #64748b; }
+
+    .rule-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 14px; }
+    .rule-chip { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 14px; }
+    .rule-chip .rc-num { font-size: 16px; font-weight: 800; color: #1d4ed8; margin-bottom: 4px; }
+    .rule-chip .rc-text { font-size: 11.5px; color: #374151; line-height: 1.5; }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════ SLIDE 1 — Concept ═══════════════ -->
+<div class="slide">
+  <div class="top-bar">
+    <div class="module-pill">DynamoDB Capacity &amp; Billing</div>
+    <div class="slide-num">1 / 2</div>
+  </div>
+
+  <h1>WCU, RCU, WRU, RRU — Four Units, Two Modes</h1>
+  <p class="sub">Same physical work, different billing model depending on capacity mode</p>
+
+  <table class="aws-table">
+    <thead><tr><th>Unit</th><th>Mode</th><th>What One Unit Buys</th></tr></thead>
+    <tbody>
+      <tr><td>WCU</td><td>Provisioned</td><td>1 write/second, up to 1 KB (pre-provisioned, billed hourly whether used or not)</td></tr>
+      <tr><td>RCU</td><td>Provisioned</td><td>1 strongly-consistent read/second, up to 4 KB — or 2 eventually-consistent reads/sec for the same unit</td></tr>
+      <tr><td>WRU</td><td>On-demand</td><td>One write request, up to 1 KB — billed per request actually made</td></tr>
+      <tr><td>RRU</td><td>On-demand</td><td>One strongly-consistent read request, up to 4 KB</td></tr>
+    </tbody>
+  </table>
+
+  <div class="warn-bar">
+    <span class="wb-icon">⚠️</span>
+    <span><strong>Rounding rule:</strong> items larger than the per-unit size round up. A 2.5 KB write costs 3 WCU/WRU. A 10 KB strongly-consistent read costs 3 RCU/RRU (10 KB → rounds to 12 KB ÷ 4 KB).</span>
+  </div>
+
+  <div class="key-bar">
+    <span class="kb-label">Key Point</span>
+    <span class="kb-text">Provisioned = pay for capacity you reserve, whether you use it. On-demand = pay per request, no reservation.<span class="kb-source">Source: DynamoDB throughput capacity</span></span>
+  </div>
+</div>
+
+<hr class="divider" />
+
+<!-- ═══════════════ SLIDE 2 — Example ═══════════════ -->
+<div class="slide">
+  <div class="top-bar">
+    <div class="module-pill">DynamoDB Capacity &amp; Billing</div>
+    <div class="slide-num">2 / 2</div>
+  </div>
+
+  <h2>rWCU / rWRU: The Global Tables Gotcha</h2>
+  <p class="sub">AWS's own worked example — the moment a table goes global, the "origin" write is no longer free</p>
+
+  <div class="warn-bar">
+    <span class="wb-icon">⚠️</span>
+    <span><strong>Common misconception:</strong> that only the "other" Region pays a replicated unit. Actually — once a table has even one replica, <strong>every</strong> write in <strong>every</strong> replica Region (including the one you wrote to) bills as rWCU/rWRU. There is no free origin write on a global table.</span>
+  </div>
+
+  <div class="day-timeline">
+    <div class="day-row">
+      <div class="dr-label">Day 1</div>
+      <div class="dr-desc">Single-Region table in us-west-2. Write 100 items (1 KB each).</div>
+      <div class="dr-cost">100 WRUs<span>normal, single-Region</span></div>
+    </div>
+    <div class="day-row">
+      <div class="dr-label">Day 2</div>
+      <div class="dr-desc">Add a replica in us-east-1 — table is now global. Write 150 items (1 KB each) to the us-west-2 replica.</div>
+      <div class="dr-cost">300 rWRUs<span>150 in EACH Region</span></div>
+    </div>
+    <div class="day-row">
+      <div class="dr-label">Day 3</div>
+      <div class="dr-desc">Add a GSI (auto-created on both replicas). Write 200 more items.</div>
+      <div class="dr-cost">400 WRUs + 400 rWRUs<span>GSI writes ≠ rWRU</span></div>
+    </div>
+  </div>
+
+  <div class="rule-strip">
+    <div class="rule-chip"><div class="rc-num">Same price</div><div class="rc-text">rWCU/rWRU cost identical to WCU/WRU per unit — the extra cost is paying once per Region, not a price premium</div></div>
+    <div class="rule-chip"><div class="rc-num">GSI ≠ replicated</div><div class="rc-text">GSI updates always bill as plain WCU/WRU, in every Region that has the index</div></div>
+    <div class="rule-chip"><div class="rc-num">Reads stay local</div><div class="rc-text">RCU/RRU are only charged where the read request lands — replication is a write-side cost model only</div></div>
+  </div>
+
+  <div class="key-bar">
+    <span class="kb-label">Teaching Point</span>
+    <span class="kb-text">Day 1's 100 writes cost 100 units total. Day 2's 150 writes cost 300 units total — the per-write cost roughly doubled the moment the table became global with 2 Regions, purely from each Region billing its own copy.<span class="kb-source">Source: Understanding Amazon DynamoDB billing for global tables</span></span>
+  </div>
+</div>
+
+</body>
+</html>

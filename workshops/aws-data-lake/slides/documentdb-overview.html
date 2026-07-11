@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Amazon DocumentDB — Overview</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f1f5f9;
+      color: #1e293b;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .slide {
+      width: 1280px;
+      min-height: 720px;
+      margin: 40px auto;
+      padding: 44px 64px 48px;
+      border-radius: 14px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 8px 32px rgba(0,0,0,.10);
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+    }
+
+    hr.divider { width: 1280px; margin: 0 auto; border: none; border-top: 1px solid #e2e8f0; }
+
+    .top-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 26px; }
+    .module-pill {
+      font-size: 11px; font-weight: 800; letter-spacing: .18em; text-transform: uppercase;
+      padding: 5px 14px; border-radius: 20px; background: #ecfdf5; color: #047857; border: 1px solid #6ee7b7;
+    }
+    .slide-num { font-size: 12px; color: #94a3b8; letter-spacing: .06em; }
+
+    h1 { font-size: 34px; font-weight: 800; color: #0f172a; line-height: 1.18; margin-bottom: 6px; }
+    .sub { font-size: 14px; color: #64748b; margin-bottom: 28px; }
+    h2 { font-size: 26px; font-weight: 800; color: #0f172a; line-height: 1.2; margin-bottom: 6px; }
+
+    code {
+      font-family: 'Courier New', monospace; font-size: 12px; background: #f1f5f9;
+      padding: 2px 6px; border-radius: 3px; color: #047857;
+    }
+
+    .key-bar {
+      display: flex; align-items: center; gap: 0; margin-top: auto; padding: 11px 18px;
+      background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 7px; font-size: 12.5px;
+    }
+    .kb-label {
+      font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+      color: #047857; margin-right: 14px; white-space: nowrap;
+    }
+    .kb-text { color: #374151; line-height: 1.5; }
+    .kb-text strong { color: #0f172a; }
+    .kb-source { color: #94a3b8; font-size: 11px; margin-left: 6px; }
+
+    .card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 18px 20px; }
+    .card h3 { font-size: 11px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; margin-bottom: 12px; color: #047857; }
+    .card ul { list-style: none; font-size: 13px; color: #374151; line-height: 1.75; }
+    .card ul li::before { content: "→ "; font-weight: 700; color: #047857; }
+
+    table.aws-table { width: 100%; border-collapse: collapse; font-size: 12.5px; margin: 10px 0; }
+    table.aws-table th {
+      background: #ecfdf5; color: #047857; font-weight: 800; text-align: left;
+      padding: 10px 12px; border: 1px solid #a7f3d0; font-size: 11px; letter-spacing: .04em; text-transform: uppercase;
+    }
+    table.aws-table td { padding: 10px 12px; border: 1px solid #e2e8f0; color: #374151; line-height: 1.5; vertical-align: top; }
+    table.aws-table tr:nth-child(even) td { background: #f8fafc; }
+    table.aws-table td:first-child { font-weight: 700; color: #0f172a; }
+
+    .fact-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 14px; }
+    .fact-chip { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 14px; text-align: center; }
+    .fact-chip .fc-num { font-size: 19px; font-weight: 800; color: #047857; }
+    .fact-chip .fc-label { font-size: 10.5px; color: #64748b; margin-top: 2px; }
+
+    /* hierarchy diagram */
+    .hier { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; margin: 16px 0; }
+    .hier-box { background: #ecfdf5; border: 1px solid #6ee7b7; border-radius: 8px; padding: 14px 20px; text-align: center; }
+    .hier-box .hb-name { font-size: 13px; font-weight: 800; color: #047857; }
+    .hier-box .hb-desc { font-size: 10.5px; color: #64748b; margin-top: 3px; }
+    .hier-arrow { font-size: 18px; color: #94a3b8; }
+
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; flex: 1; }
+
+    /* cluster diagram */
+    .cluster-diagram { display: flex; gap: 14px; align-items: stretch; margin: 14px 0; flex: 1; }
+    .cd-primary { flex: 1; background: #ecfdf5; border: 2px solid #10b981; border-radius: 10px; padding: 16px; }
+    .cd-primary .cd-badge { font-size: 10px; font-weight: 800; color: #047857; text-transform: uppercase; letter-spacing: .1em; }
+    .cd-primary h4 { font-size: 15px; font-weight: 800; color: #065f46; margin: 6px 0; }
+    .cd-replica { flex: 1; background: #eff6ff; border: 1px solid #93c5fd; border-radius: 10px; padding: 16px; }
+    .cd-replica .cd-badge { font-size: 10px; font-weight: 800; color: #1d4ed8; text-transform: uppercase; letter-spacing: .1em; }
+    .cd-replica h4 { font-size: 15px; font-weight: 800; color: #1e3a8a; margin: 6px 0; }
+    .cd-storage { flex: 1; background: #fff7ed; border: 1px solid #fdba74; border-radius: 10px; padding: 16px; }
+    .cd-storage .cd-badge { font-size: 10px; font-weight: 800; color: #9a3412; text-transform: uppercase; letter-spacing: .1em; }
+    .cd-storage h4 { font-size: 15px; font-weight: 800; color: #9a3412; margin: 6px 0; }
+    .cluster-diagram ul { list-style: none; font-size: 11.5px; color: #374151; line-height: 1.6; }
+    .cluster-diagram ul li::before { content: "▸ "; }
+
+    /* security grid */
+    .sec-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; flex: 1; }
+    .sec-col { border-radius: 10px; padding: 16px; border-left: 4px solid; background: #f8fafc; }
+    .sec-col h3 { font-size: 12px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 10px; }
+    .sec-col ul { list-style: none; font-size: 12.5px; color: #374151; line-height: 1.7; }
+    .sec-col ul li::before { content: "▸ "; }
+    .sec-vpc { border-color: #0e7490; } .sec-vpc h3 { color: #0e7490; } .sec-vpc ul li::before { color: #22d3ee; }
+    .sec-tls { border-color: #7c3aed; } .sec-tls h3 { color: #6d28d9; } .sec-tls ul li::before { color: #a78bfa; }
+    .sec-iam { border-color: #047857; } .sec-iam h3 { color: #047857; } .sec-iam ul li::before { color: #34d399; }
+    .sec-sm { border-color: #d97706; } .sec-sm h3 { color: #b45309; } .sec-sm ul li::before { color: #eab308; }
+
+    /* elastic shard visual */
+    .shard-row { display: flex; gap: 8px; margin: 14px 0; flex-wrap: wrap; }
+    .shard-box { flex: 1; min-width: 90px; background: #ecfdf5; border: 1px solid #6ee7b7; border-radius: 8px; padding: 10px; text-align: center; font-size: 11px; color: #047857; font-weight: 700; }
+
+    .flow-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 14px 0; }
+    .flow-step { background: #ecfdf5; border: 1px solid #6ee7b7; border-radius: 8px; padding: 12px 16px; font-size: 12.5px; font-weight: 700; color: #047857; text-align: center; flex: 1; min-width: 140px; }
+    .flow-arrow { font-size: 20px; color: #94a3b8; font-weight: 800; }
+
+    .arch-layers { display: flex; flex-direction: column; gap: 8px; flex: 1; }
+    .arch-layer { display: grid; grid-template-columns: 200px 1fr; align-items: start; gap: 16px; padding: 12px 16px; border-radius: 8px; border-left: 4px solid; }
+    .al-label { display: flex; align-items: center; gap: 10px; }
+    .al-icon { font-size: 20px; }
+    .al-name { font-size: 13px; font-weight: 800; }
+    .al-zone { font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; margin-top: 2px; }
+    .al-items { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding-top: 2px; }
+    .al-chip { font-size: 11.5px; font-weight: 600; padding: 3px 10px; border-radius: 4px; border: 1px solid; white-space: nowrap; }
+    .al-chip.emph { border-width: 2px; font-weight: 800; }
+    .l-store { background: #fff7ed; border-color: #f97316; } .l-store .al-name { color: #9a3412; } .l-store .al-zone { color: #f97316; } .l-store .al-chip { background: #ffedd5; border-color: #fdba74; color: #9a3412; }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════ SLIDE 1 — Overview ═══════════════ -->
+<div class="slide">
+  <div class="top-bar">
+    <div class="module-pill">Amazon DocumentDB</div>
+    <div class="slide-num">1 / 10</div>
+  </div>
+
+  <h1>DocumentDB: MongoDB-Compatible, Fully Managed</h1>
+  <p class="sub">A document database service that runs the code and drivers you already have</p>
+
+  <div class="card">
+    <h3>AWS's Own Description</h3>
+    <ul>
+      <li>"A fast, reliable, and fully managed database service"</li>
+      <li>"Makes it easy to set up, operate, and scale MongoDB-compatible databases in the cloud"</li>
+      <li>"You can run the same application code and use the same drivers and tools that you use with MongoDB"</li>
+    </ul>
+  </div>
+
+  <div class="fact-strip">
+    <div class="fact-chip"><div class="fc-num">MongoDB 4.0 / 5.0 / 8.0</div><div class="fc-label">supported API compatibility</div></div>
+    <div class="fact-chip"><div class="fc-num">FedRAMP</div><div class="fc-label">High (GovCloud) / Moderate (US East/West)</div></div>
+    <div class="fact-chip"><div class="fc-num">VPC-Native</div><div class="fc-label">runs only inside your Amazon VPC</div></div>
+  </div>
+
+  <div class="key-bar">
+    <span class="kb-label">Key Point</span>
+    <span class="kb-text">DocumentDB is not "MongoDB running on AWS" — it's a separate, AWS-built engine that speaks the MongoDB wire protocol, managed the way RDS/Aurora manage relational engines.<span class="kb-source">Source: What is Amazon DocumentDB</span></span>
+  </div>
+</div>
+
+<hr class="divider" />
+
+<!-- ═══════════════ SLIDE 2 — Core Concepts ═══════════════ -->
+<div class="slide">
+  <div class="top-bar">
+    <div class="module-pill">Amazon DocumentDB</div>
+    <div class="slide-num">2 / 10</div>
+  </div>
+
+  <h2>Core Concepts: Clusters, Instances, Databases, Collections, Documents</h2>
+  <p class="sub">Five terms that map onto each other in a strict hierarchy</p>
+
+  <div class="hier">
+    <div class="hier-box"><div class="hb-name">Cluster</div><div class="hb-desc">0–16 instances +<br/>shared storage volume</div></div>
+    <div class="hier-arrow">→</div>
+    <div class="hier-box"><div class="hb-name">Instance</div><div class="hb-desc">isolated compute<br/>environment</div></div>
+    <div class="hier-arrow">→</div>
+    <div class="hier-box"><div class="hb-name">Database</div><div class="hb-desc">a namespace inside<br/>an instance</div></div>
+    <div class="hier-arrow">→</div>
+    <div class="hier-box"><div class="hb-name">Collection</div><div class="hb-desc">groups related<br/>documents</div></div>
+    <div class="hier-arrow">→</div>
+    <div class="hier-box"><div class="hb-name">Document</div><div class="hb-desc">a single JSON-like<br/>record</div></div>
+  </div>
+
+  <div class="card">
+    <h3>What AWS Documents</h3>
+    <ul>
+      <li>"A cluster consists of 0 to 16 instances and a cluster storage volume that manages the data for those instances"</li>
+      <li>"All writes are done through the primary instance. All instances (primary and replicas) support reads"</li>
+      <li>"An Amazon DocumentDB instance is an isolated database environment... can contain multiple user-created databases"</li>
+    </ul>
+  </div>
+
+  <div class="key-bar">
+    <span class="kb-label">Source</span>
+    <span class="kb-text">What is Amazon DocumentDB — Clusters &amp; Instances sections</span>
+  </div>
+</div>
+
+<hr class="divider" />
+
+<!-- ═══════════════ SLIDE 3 — DocumentDB vs MongoDB ═══════════════ -->
+<div class="slide">
+  <div class="top-bar">
+    <div class="module-pill">Amazon DocumentDB</div>
+    <div class="slide-num">3 / 10</div>
+  </div>
+
+  <h2>DocumentDB vs. MongoDB: Compatibility, Not Identity</h2>
+  <p class="sub">"Little or no change" for most apps — but not every feature exists</p>
+
+  <div class="two-col">
+    <div class="card">
+      <h3>What's Compatible</h3>
+      <ul>
+        <li>MongoDB 4.0, 5.0, and 8.0 API driver compatibility</li>
+        <li>"Vast majority of the applications, drivers, and tools you already use today... can be used with Amazon DocumentDB"</li>
+        <li>DocumentDB 8.0: full wire protocol compatibility with MongoDB 8.0</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>What's Different</h3>
+      <ul>
+        <li>"Amazon DocumentDB does not support every MongoDB feature" — built backwards from customer-requested capabilities</li>
+        <li>Functional differences exist between DocumentDB versions themselves (e.g., query planner, projection behavior)</li>
+        <li>Migration path: AWS DMS, or <code>mongodump</code> / <code>mongorestore</code> / <code>mongoimport</code> / <code>mongoexport</code></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="key-bar">
+    <span class="kb-label">Migration Consideration</span>
+    <span class="kb-text">Always check <strong>Supported MongoDB APIs, operations, and data types</strong> before migrating — assuming 100% parity is the most common migration mistake.<span class="kb-source">Source: Amazon DocumentDB compatibility with MongoDB</span></span>
+  </div>
+</div>
+
+<hr class="divider" />
+
+<!-- ═══════════════ SLIDE 4 — DocumentDB vs DynamoDB ═══════════════ -->
+<div class="slide">
+  <div class="top-bar">
+    <div class="module-pill">Amazon DocumentDB</div>
+    <div class="slide-num">4 / 10</div>
+  </div>
+
+  <h2>DocumentDB vs. DynamoDB: Document Model vs. Key-Value</h2>
+  <p class="sub">AWS's own comparison table, read as a two-row decision</p>
+
+  <table class="aws-table">
+    <thead><tr><th>Data Model</th><th>When Would You Use It?</th><th>What Is It Optimized For?</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>Document (DocumentDB)</td>
+        <td>Storing JSON-like documents with rich querying abilities across the fields of the documents</td>
+        <td>Semi-structured data as documents with multilayered attributes</td>
+      </tr>
+      <tr>
+        <td>Key-value (DynamoDB)</td>
+        <td>Session stores or shopping carts — scale to large data volumes and extremely high request throughput</td>
+        <td>Serverless, NoSQL, fully managed, single-digit millisecond performance at any scale</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="card" style="margin-top:12px;">
+    <h3>Rule of Thumb</h3>
+    <ul>
+      <li>Query <strong>across</strong> nested document fields, need MongoDB compatibility → DocumentDB</li>
+      <li>Query <strong>by known key</strong>, need the lowest possible latency at extreme scale → DynamoDB</li>
+    </ul>
+  </div>
+
+  <div class="key-bar">
+    <span class="kb-label">Honest Framing</span>
+    <span class="kb-text">AWS doesn't publish one page pitting DocumentDB against DynamoDB directly — this reads the general database decision guide's comparison table for the two relevant rows.<span class="kb-source">Source: AWS Decision Guide — Choosing an AWS database service</span></span>
+  </div>
+</div>
+
+<hr class="divider" />
+
+<!-- ═══════════════ SLIDE 5 — Cluster Architecture ═══════════════ -->
+<div class="slide">
+  <div class="top-bar">
+    <div class="module-pill">Amazon DocumentDB</div>
+    <div class="slide-num">5 / 10</div>
+  </div>
+
+  <h2>Cluster Architecture: Primary, Replicas, Storage Auto-Scaling</h2>
+  <p class="sub">Compute and storage scale independently of each other</p>
+
+  <div class="cluster-diagram">
+    <div class="cd-primary">
+      <div class="cd-badge">Primary Instance</div>
+      <h4>Handles all writes</h4>
+      <ul><li>All writes go through here</li><li>Also serves reads</li><li>Auto-restart on failure, no redo-log replay needed</li></ul>
+    </div>
+    <div class="cd-replica">
+      <div class="cd-badge">Up to 15 Replicas</div>
+      <h4>Read scaling</h4>
+      <ul><li>Share the same underlying storage — no separate write cost</li><li>Replica lag often single-digit milliseconds</li><li>Reader endpoint auto-tracks replicas as they're added/removed</li></ul>
+    </div>
+    <div class="cd-storage">
+      <div class="cd-badge">Storage Volume</div>
+      <h4>Auto-scaling</h4>
+      <ul><li>Grows in 10 GB increments, up to 128 TiB</li><li>6 copies replicated across 3 Availability Zones</li><li>No excess capacity to provision in advance</li></ul>
+    </div>
+  </div>
+
+  <div class="fact-strip">
+    <div class="fact-chip"><div class="fc-num">0–16</div><div class="fc-label">instances per cluster</div></div>
+    <div class="fact-chip"><div class="fc-num">15</div><div class="fc-label">max replica instances</div></div>
+    <div class="fact-chip"><div class="fc-num">128 TiB</div><div class="fc-label">max storage volume</div></div>
+    <div class="fact-chip"><div class="fc-num">Minutes</div><div class="fc-label">to add a replica or resize compute</div></div>
+  </div>
+
+  <div class="key-bar">
+    <span class="kb-label">Source</span>
+    <span class="kb-text">What is Amazon DocumentDB — Overview and Clusters sections</span>
+  </div>
+</div>
+
+<hr class="divider" />
+
+<!-- ═══════════════ SLIDE 6 — Security ═══════════════ -->
+<div class="slide">
+  <div class="top-bar">
+    <div class="module-pill">Amazon DocumentDB</div>
+    <div class="slide-num">6 / 10</div>
+  </div>
+
+  <h2>Security: VPC, TLS, IAM Authentication, Secrets Manager</h2>
+  <p class="sub">Four pillars, all documented as first-class AWS features for DocumentDB</p>
+
+  <div class="sec-grid">
+    <div class="sec-col sec-vpc">
+      <h3>VPC Isolation</h3>
+      <ul>
+        <li>Runs only inside your Amazon VPC — no public internet by default</li>
+        <li>API and interface VPC endpoints (AWS PrivateLink) supported</li>
+      </ul>
+    </div>
+    <div class="sec-col sec-tls">
+      <h3>TLS in Transit</h3>
+      <ul>
+        <li>"By default, a newly created cluster accepts secure connections only using TLS"</li>
+        <li>DocumentDB 8.0 requires TLS 1.2+ — TLS 1.0/1.1 no longer supported</li>
+      </ul>
+    </div>
+    <div class="sec-col sec-iam">
+      <h3>IAM Authentication</h3>
+      <ul>
+        <li>Dedicated "Authentication using IAM identity" capability, alongside native DB users</li>
+        <li>Role-Based Access Control (RBAC) for database-level access</li>
+      </ul>
+    </div>
+    <div class="sec-col sec-sm">
+      <h3>Secrets Manager</h3>
+      <ul>
+        <li>Documented integration: "Password management with Amazon DocumentDB and AWS Secrets Manager"</li>
+        <li>Rotate DB credentials without touching application config</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="key-bar">
+    <span class="kb-label">Source</span>
+    <span class="kb-text">Security in Amazon DocumentDB — full topic list of documented security capabilities</span>
+  </div>
+</div>
+
+<hr class="divider" />
+
+<!-- ═══════════════ SLIDE 7 — Backup and Restore ═══════════════ -->
+<div class="slide">
+  <div class="top-bar">
+    <div class="module-pill">Amazon DocumentDB</div>
+    <div class="slide-num">7 / 10</div>
+  </div>
+
+  <h2>Backup &amp; Restore: Automated, Continuous, Zero Performance Hit</h2>
+  <p class="sub">Point-in-time recovery down to the second</p>
+
+  <div class="card">
+    <h3>What AWS Documents, Verbatim</h3>
+    <ul>
+      <li>"This feature allows you to restore your cluster to any second during your retention period, up to the last 5 minutes"</li>
+      <li>"You can configure your automatic backup retention period up to 35 days"</li>
+      <li>"Amazon DocumentDB backups are automatic, incremental, and continuous, and they have no impact on your cluster performance"</li>
+      <li>Backups stored in Amazon S3, "designed for 99.999999999% durability"</li>
+    </ul>
+  </div>
+
+  <div class="fact-strip">
+    <div class="fact-chip"><div class="fc-num">35 days</div><div class="fc-label">max automated backup retention</div></div>
+    <div class="fact-chip"><div class="fc-num">5 min</div><div class="fc-label">PITR recovery point lag from "now"</div></div>
+    <div class="fact-chip"><div class="fc-num">11 nines</div><div class="fc-label">backup storage durability (S3)</div></div>
+  </div>
+
+  <div class="key-bar">
+    <span class="kb-label">Also Available</span>
+    <span class="kb-text">Manual snapshots — user-initiated, retained until explicitly deleted, independent of the automated backup retention window.<span class="kb-source">Source: What is Amazon DocumentDB</span></span>
+  </div>
+</div>
+
+<hr class="divider" />
+
+<!-- ═══════════════ SLIDE 8 — Elastic Clusters ═══════════════ -->
+<div class="slide">
+  <div class="top-bar">
+    <div class="module-pill">Amazon DocumentDB</div>
+    <div class="slide-num">8 / 10</div>
+  </div>
+
+  <h2>Elastic Clusters: Horizontal Scaling for Petabyte Workloads</h2>
+  <p class="sub">When one cluster's vertical limits aren't enough</p>
+
+  <div class="card">
+    <h3>What Problem It Solves</h3>
+    <ul>
+      <li>"Elastic clusters support workloads with millions of reads/writes per second and petabytes of storage capacity"</li>
+      <li>Uses <strong>hash-based sharding</strong> to partition data across a distributed storage system</li>
+      <li>Compute and storage are decoupled, scaling independently — same principle as instance-based clusters, applied per shard</li>
+    </ul>
+  </div>
+
+  <div class="shard-row">
+    <div class="shard-box">Shard 1<br/>writer + replicas</div>
+    <div class="shard-box">Shard 2<br/>writer + replicas</div>
+    <div class="shard-box">Shard 3<br/>writer + replicas</div>
+    <div class="shard-box">…</div>
+    <div class="shard-box">Shard 32<br/>writer + replicas</div>
+  </div>
+
+  <div class="fact-strip">
+    <div class="fact-chip"><div class="fc-num">32</div><div class="fc-label">maximum shards</div></div>
+    <div class="fact-chip"><div class="fc-num">64 vCPUs</div><div class="fc-label">max per shard instance</div></div>
+    <div class="fact-chip"><div class="fc-num">0–15</div><div class="fc-label">read replicas per shard (default: 1)</div></div>
+    <div class="fact-chip"><div class="fc-num">Scale out/up/down</div><div class="fc-label">add or reduce shards and vCPUs on demand</div></div>
+  </div>
+
+  <div class="key-bar">
+    <span class="kb-label">Source</span>
+    <span class="kb-text">Amazon DocumentDB elastic clusters: how it works</span>
+  </div>
+</div>
+
+<hr class="divider" />
+
+<!-- ═══════════════ SLIDE 9 — Integration & Migration ═══════════════ -->
+<div class="slide">
+  <div class="top-bar">
+    <div class="module-pill">Amazon DocumentDB</div>
+    <div class="slide-num">9 / 10</div>
+  </div>
+
+  <h2>AWS Integration &amp; Migration: MongoDB → DocumentDB via DMS</h2>
+  <p class="sub">Real mapping rules AWS DMS applies, not a generic "it just works"</p>
+
+  <div class="flow-row">
+    <div class="flow-step">MongoDB source<br/>(self-managed or on-prem)</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">AWS DMS<br/>(Document mode)</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">Amazon DocumentDB<br/>database → collection → document</div>
+  </div>
+
+  <div class="two-col" style="margin-top:10px;">
+    <div class="card">
+      <h3>Relational Source Mapping</h3>
+      <ul>
+        <li>Database/schema → DocumentDB <strong>database</strong></li>
+        <li>Table → <strong>collection</strong></li>
+        <li>Record → <strong>document</strong></li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>CDC Performance (DMS 3.5.0+)</h3>
+      <ul>
+        <li>Prior releases: up to 250 records/sec</li>
+        <li>Current: <strong>over 5,000 records/sec</strong> — a 20× improvement</li>
+        <li>Also integrates with Lambda and S3 export for broader pipeline use</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="key-bar">
+    <span class="kb-label">Source</span>
+    <span class="kb-text">Using Amazon DocumentDB as a target for AWS Database Migration Service</span>
+  </div>
+</div>
+
+<hr class="divider" />
+
+<!-- ═══════════════ SLIDE 10 — Metadata Store + Enterprise Context ═══════════════ -->
+<div class="slide">
+  <div class="top-bar">
+    <div class="module-pill">Amazon DocumentDB</div>
+    <div class="slide-num">10 / 10</div>
+  </div>
+
+  <h2>DocumentDB as Metadata/Catalog Store — and Where It Fits Overall</h2>
+  <p class="sub">Flexible schema for the data that doesn't fit neatly in a warehouse row</p>
+
+  <div class="arch-layers">
+    <div class="arch-layer l-store">
+      <div class="al-label">
+        <span class="al-icon">🪣</span>
+        <div><div class="al-name">Store Layer</div><div class="al-zone">Where data lives</div></div>
+      </div>
+      <div class="al-items">
+        <span class="al-chip">S3 Raw / Curated</span>
+        <span class="al-chip">Redshift</span>
+        <span class="al-chip">DynamoDB</span>
+        <span class="al-chip emph">DocumentDB</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:14px;">
+    <h3>Why Document Model for Catalog/Metadata</h3>
+    <ul>
+      <li>Semi-structured attributes that vary by item — exactly what document storage is optimized for</li>
+      <li>Rich querying across nested fields, without a fixed relational schema</li>
+      <li>Sits alongside the structured, relational-shaped warehouse layer — not a replacement for it</li>
+    </ul>
+  </div>
+
+  <div class="key-bar">
+    <span class="kb-label">Enterprise Framing (genericized)</span>
+    <span class="kb-text">In this program's scenario, an aerospace/manufacturing enterprise uses DocumentDB for flexible-schema operational data — product/part catalogs, evolving metadata — alongside its structured data warehouse layer, the same "right tool for the access pattern" principle covered earlier in this program.</span>
+  </div>
+</div>
+
+</body>
+</html>
