@@ -1,6 +1,6 @@
 # Notice Board
 
-A full-stack notice board application — React frontend, Python Lambda backend, MongoDB database.
+A full-stack notice board application: React frontend, Python Lambda backend, MongoDB database.
 
 ## Read the Assignment
 
@@ -12,13 +12,13 @@ A full-stack notice board application — React frontend, Python Lambda backend,
 
 | File | Description |
 |------|-------------|
-| `frontend/` | React app — do not modify |
-| `backend/lambda_function.py` | Python Lambda handler — do not modify |
+| `frontend/` | React app: do not modify |
+| `backend/lambda_function.py` | Python Lambda handler: do not modify |
 | `backend/requirements.txt` | Python dependencies |
 | `build.py` | Packages the Lambda zip |
-| `terraform/main.tf` | Scaffold with TODOs — you complete this |
+| `terraform/main.tf` | Scaffold with TODOs: you complete this |
 | `terraform/variables.tf` | Variables already defined |
-| `terraform/outputs.tf` | Scaffold with TODOs — you complete this |
+| `terraform/outputs.tf` | Scaffold with TODOs: you complete this |
 
 ---
 

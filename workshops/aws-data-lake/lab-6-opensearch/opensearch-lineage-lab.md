@@ -2,15 +2,15 @@
 
 In this lab you will build a lineage tracking system inside OpenSearch that
 captures the full journey of data through the pipeline you have been building
-across all 6 labs — from raw CSV ingestion to Redshift queries.
+across all 6 labs: from raw CSV ingestion to Redshift queries.
 
 You will use OpenSearch to answer four operational questions that data engineers
 face every day:
 
-1. **Provenance** — where did this dataset come from? What transformed it?
-2. **Impact analysis** — if I change the source schema, what breaks downstream?
-3. **Freshness** — when was this data last updated? Did the job succeed?
-4. **Dead ends** — which datasets have no downstream consumers?
+1. **Provenance**: where did this dataset come from? What transformed it?
+2. **Impact analysis**: if I change the source schema, what breaks downstream?
+3. **Freshness**: when was this data last updated? Did the job succeed?
+4. **Dead ends**: which datasets have no downstream consumers?
 
 ---
 
@@ -24,9 +24,9 @@ OpenSearch is not a graph database, so we model the graph with three indices:
 
 | Index | What it stores |
 |---|---|
-| `lineage_nodes` | Every dataset and job — one document per asset |
-| `lineage_edges` | Directed connections — `source_id → target_id` |
-| `lineage_runs` | Execution history — one document per job run |
+| `lineage_nodes` | Every dataset and job: one document per asset |
+| `lineage_edges` | Directed connections: `source_id → target_id` |
+| `lineage_runs` | Execution history: one document per job run |
 
 To traverse the graph you run queries on edges: find all edges where
 `target_id = my_node` (upstream) or `source_id = my_node` (downstream).
@@ -58,11 +58,11 @@ This is the crude oil data pipeline from Labs 1–4:
 
 ---
 
-## PART 1 — Create the lineage indices
+## PART 1: Create the lineage indices
 
 Run all commands in Dev Tools as your admin user.
 
-### Index 1 — lineage_nodes
+### Index 1: lineage_nodes
 
 ```
 PUT /lineage_nodes
@@ -85,7 +85,7 @@ PUT /lineage_nodes
 }
 ```
 
-### Index 2 — lineage_edges
+### Index 2: lineage_edges
 
 ```
 PUT /lineage_edges
@@ -105,7 +105,7 @@ PUT /lineage_edges
 }
 ```
 
-### Index 3 — lineage_runs
+### Index 3: lineage_runs
 
 ```
 PUT /lineage_runs
@@ -129,9 +129,9 @@ PUT /lineage_runs
 
 ---
 
-## PART 2 — Load nodes (datasets and jobs)
+## PART 2: Load nodes (datasets and jobs)
 
-### 2A — Dataset nodes
+### 2A: Dataset nodes
 
 ```
 POST /lineage_nodes/_bulk
@@ -144,12 +144,12 @@ POST /lineage_nodes/_bulk
 {"index":{"_id":"ds-004"}}
 {"node_id":"ds-004","node_type":"dataset","name":"Glue Catalog: oil_curated","description":"Glue Data Catalog table over the curated Parquet prefix. Created by the crawler in Lab 4. Used by Redshift Spectrum.","owner":"data-engineering","platform":"Glue Catalog","location":"glue://spectrum_oil_studentNN.oil_curated","schema_fields":["trade_ts","open","high","low","close","volume","ticker","name","year","month","day"],"tags":["catalog","curated","oil","glue","spectrum"],"created_at":"2024-01-17","updated_at":"2024-11-02"}
 {"index":{"_id":"ds-005"}}
-{"node_id":"ds-005","node_type":"dataset","name":"Redshift Spectrum: ext_oil_studentNN","description":"External schema in Redshift pointing to the Glue catalog. No data movement — Redshift reads Parquet from S3 at query time.","owner":"analytics","platform":"Redshift Serverless","location":"redshift://dev.ext_oil_studentNN.oil_curated","schema_fields":["trade_ts","open","high","low","close","volume","ticker","name","year","month","day"],"tags":["spectrum","external","redshift","oil"],"created_at":"2024-02-01","updated_at":"2024-11-03"}
+{"node_id":"ds-005","node_type":"dataset","name":"Redshift Spectrum: ext_oil_studentNN","description":"External schema in Redshift pointing to the Glue catalog. No data movement: Redshift reads Parquet from S3 at query time.","owner":"analytics","platform":"Redshift Serverless","location":"redshift://dev.ext_oil_studentNN.oil_curated","schema_fields":["trade_ts","open","high","low","close","volume","ticker","name","year","month","day"],"tags":["spectrum","external","redshift","oil"],"created_at":"2024-02-01","updated_at":"2024-11-03"}
 {"index":{"_id":"ds-006"}}
 {"node_id":"ds-006","node_type":"dataset","name":"Redshift Native: oil_native","description":"Native Redshift table loaded by COPY from S3 Parquet. Sorted by trade_ts, distributed by ticker. Used for high-frequency analyst queries.","owner":"analytics","platform":"Redshift Serverless","location":"redshift://dev.public.oil_native","schema_fields":["trade_ts","open","high","low","close","volume","ticker","name"],"tags":["native","redshift","oil","analytics"],"created_at":"2024-02-05","updated_at":"2024-11-04"}
 ```
 
-### 2B — Job nodes
+### 2B: Job nodes
 
 ```
 POST /lineage_nodes/_bulk
@@ -175,7 +175,7 @@ Expect 11 (6 datasets + 5 jobs).
 
 ---
 
-## PART 3 — Load edges (the relationships)
+## PART 3: Load edges (the relationships)
 
 Each edge is a directed link: `source_id → target_id`.
 
@@ -213,7 +213,7 @@ Expect 10 edges.
 
 ---
 
-## PART 4 — Load job run history
+## PART 4: Load job run history
 
 Simulate 2 weeks of nightly job runs including two failures.
 
@@ -226,13 +226,13 @@ POST /lineage_runs/_bulk
 {"index":{"_id":"run-003"}}
 {"run_id":"run-003","job_id":"job-003","job_name":"oil_etl_job","status":"success","started_at":"2024-10-29T02:00:00","completed_at":"2024-10-29T02:03:58","duration_sec":238,"rows_read":6367,"rows_written":6367,"error_message":null}
 {"index":{"_id":"run-004"}}
-{"run_id":"run-004","job_id":"job-005","job_name":"redshift_copy_job","status":"failed","started_at":"2024-10-29T03:00:00","completed_at":"2024-10-29T03:00:09","duration_sec":9,"rows_read":0,"rows_written":0,"error_message":"S3ServiceException: Access Denied on s3://quicklabs-studentNN-curated/oil_curated/ — IAM role missing s3:GetObject"}
+{"run_id":"run-004","job_id":"job-005","job_name":"redshift_copy_job","status":"failed","started_at":"2024-10-29T03:00:00","completed_at":"2024-10-29T03:00:09","duration_sec":9,"rows_read":0,"rows_written":0,"error_message":"S3ServiceException: Access Denied on s3://quicklabs-studentNN-curated/oil_curated/: IAM role missing s3:GetObject"}
 {"index":{"_id":"run-005"}}
 {"run_id":"run-005","job_id":"job-003","job_name":"oil_etl_job","status":"success","started_at":"2024-10-30T02:00:00","completed_at":"2024-10-30T02:04:30","duration_sec":270,"rows_read":6367,"rows_written":6367,"error_message":null}
 {"index":{"_id":"run-006"}}
 {"run_id":"run-006","job_id":"job-005","job_name":"redshift_copy_job","status":"success","started_at":"2024-10-30T03:00:00","completed_at":"2024-10-30T03:01:52","duration_sec":112,"rows_read":6367,"rows_written":6367,"error_message":null}
 {"index":{"_id":"run-007"}}
-{"run_id":"run-007","job_id":"job-003","job_name":"oil_etl_job","status":"failed","started_at":"2024-10-31T02:00:00","completed_at":"2024-10-31T02:00:22","duration_sec":22,"rows_read":0,"rows_written":0,"error_message":"GlueException: Script s3://quicklabs-studentNN-scripts/oil_csv_to_parquet.py not found — bucket may have been deleted"}
+{"run_id":"run-007","job_id":"job-003","job_name":"oil_etl_job","status":"failed","started_at":"2024-10-31T02:00:00","completed_at":"2024-10-31T02:00:22","duration_sec":22,"rows_read":0,"rows_written":0,"error_message":"GlueException: Script s3://quicklabs-studentNN-scripts/oil_csv_to_parquet.py not found: bucket may have been deleted"}
 {"index":{"_id":"run-008"}}
 {"run_id":"run-008","job_id":"job-003","job_name":"oil_etl_job","status":"success","started_at":"2024-11-01T02:00:00","completed_at":"2024-11-01T02:04:05","duration_sec":245,"rows_read":6367,"rows_written":6367,"error_message":null}
 {"index":{"_id":"run-009"}}
@@ -257,9 +257,9 @@ Expect 13 runs.
 
 ---
 
-## PART 5 — Lineage queries
+## PART 5: Lineage queries
 
-### Q1 — PROVENANCE: Where did `oil_native` come from?
+### Q1: PROVENANCE: Where did `oil_native` come from?
 
 Find all edges where `target_id` is the Redshift native table (`ds-006`):
 
@@ -274,7 +274,7 @@ GET /lineage_edges/_search
 
 This returns `edge-010`: the `redshift_copy_job` writes to `oil_native`.
 
-Now trace one level further — what feeds `redshift_copy_job` (`job-005`)?
+Now trace one level further: what feeds `redshift_copy_job` (`job-005`)?
 
 ```
 GET /lineage_edges/_search
@@ -307,7 +307,7 @@ S3 Raw CSV → oil_etl_job → S3 Curated Parquet → redshift_copy_job → oil_
 
 ---
 
-### Q2 — IMPACT ANALYSIS: If I change the schema of the raw CSV, what breaks?
+### Q2: IMPACT ANALYSIS: If I change the schema of the raw CSV, what breaks?
 
 Find all edges where `source_id = ds-001` (the raw CSV):
 
@@ -320,7 +320,7 @@ GET /lineage_edges/_search
 }
 ```
 
-This returns three edges — the raw CSV feeds:
+This returns three edges: the raw CSV feeds:
 - `oil_crawler` (job-002) → which updates `oil_raw` catalog
 - `oil_etl_job` (job-003) → which writes to `oil_curated` Parquet
 
@@ -351,7 +351,7 @@ ds-001 (raw CSV)
 
 ---
 
-### Q3 — FIELD LINEAGE: Which datasets carry the `volume` field?
+### Q3: FIELD LINEAGE: Which datasets carry the `volume` field?
 
 ```
 GET /lineage_nodes/_search
@@ -363,12 +363,12 @@ GET /lineage_nodes/_search
 }
 ```
 
-This shows every node in the pipeline that exposes the `volume` field — useful
+This shows every node in the pipeline that exposes the `volume` field: useful
 when someone asks "can I safely rename this column?"
 
 ---
 
-### Q4 — FRESHNESS: When was each dataset last updated?
+### Q4: FRESHNESS: When was each dataset last updated?
 
 ```
 GET /lineage_nodes/_search
@@ -384,11 +384,11 @@ GET /lineage_nodes/_search
 }
 ```
 
-Datasets sorted oldest-first — the ones at the top need attention.
+Datasets sorted oldest-first: the ones at the top need attention.
 
 ---
 
-### Q5 — JOB HEALTH: Which jobs have failed recently?
+### Q5: JOB HEALTH: Which jobs have failed recently?
 
 ```
 GET /lineage_runs/_search
@@ -406,7 +406,7 @@ script). The `error_message` field tells you exactly what went wrong.
 
 ---
 
-### Q6 — JOB RELIABILITY: Success rate per job
+### Q6: JOB RELIABILITY: Success rate per job
 
 ```
 GET /lineage_runs/_search
@@ -432,7 +432,7 @@ For each job: how many runs succeeded vs failed, and average duration.
 
 ---
 
-### Q7 — ORPHAN DETECTION: Which datasets have no downstream consumers?
+### Q7: ORPHAN DETECTION: Which datasets have no downstream consumers?
 
 First, collect all node IDs that appear as a source in any edge:
 
@@ -459,14 +459,14 @@ GET /lineage_nodes/_search
 ```
 
 Compare the two lists. Any dataset node **not** appearing as a `source_id` in any
-edge is an orphan — it was produced but nothing consumes it. In our pipeline,
-`ds-006` (Redshift native) is the terminal node — expected. But if an intermediate
+edge is an orphan: it was produced but nothing consumes it. In our pipeline,
+`ds-006` (Redshift native) is the terminal node: expected. But if an intermediate
 table like `ds-003` had no outbound edges, that would be a dead-end dataset worth
 investigating.
 
 ---
 
-### Q8 — AUDIT TRAIL: Full history of the ETL job
+### Q8: AUDIT TRAIL: Full history of the ETL job
 
 ```
 GET /lineage_runs/_search
@@ -484,17 +484,17 @@ on Oct 31, and recovery the next day.
 
 ---
 
-## PART 6 — Build a lineage dashboard in Dashboards
+## PART 6: Build a lineage dashboard in Dashboards
 
-### Step 1 — Create index patterns
+### Step 1: Create index patterns
 
 Go to **Stack Management → Index Patterns** and create one pattern for each index:
 
-- `lineage_nodes`  (no time filter — the data is static metadata)
+- `lineage_nodes`  (no time filter: the data is static metadata)
 - `lineage_edges`  (no time filter)
 - `lineage_runs`   (time field: `started_at`)
 
-### Step 2 — Pipeline health overview (Data Table)
+### Step 2: Pipeline health overview (Data Table)
 
 1. Visualize → Create → Data Table → source `lineage_runs`
 2. Metric: Count
@@ -503,16 +503,16 @@ Go to **Stack Management → Index Patterns** and create one pattern for each in
 5. Run. You get a grid: job × status showing success / failed counts
 6. Save as: **Job Run Summary**
 
-### Step 3 — Job duration trend (Line chart)
+### Step 3: Job duration trend (Line chart)
 
 1. Visualize → Create → Line → source `lineage_runs`
 2. Y-axis: Average → Field: `duration_sec`
 3. X-axis: Date Histogram → Field: `started_at` → Minimum interval: Daily
 4. Add series split → Terms → Field: `job_name`
-5. Run. A line per job showing duration over time — spikes indicate problems.
+5. Run. A line per job showing duration over time: spikes indicate problems.
 6. Save as: **Job Duration Trend**
 
-### Step 4 — Pipeline asset inventory (Data Table)
+### Step 4: Pipeline asset inventory (Data Table)
 
 1. Visualize → Create → Data Table → source `lineage_nodes`
 2. Metric: Count
@@ -520,7 +520,7 @@ Go to **Stack Management → Index Patterns** and create one pattern for each in
 4. Run. A breakdown of how many datasets and jobs exist per platform.
 5. Save as: **Asset Inventory by Platform**
 
-### Step 5 — Failed runs (Metric)
+### Step 5: Failed runs (Metric)
 
 1. Visualize → Create → Metric → source `lineage_runs`
 2. Metric: Count
@@ -528,7 +528,7 @@ Go to **Stack Management → Index Patterns** and create one pattern for each in
 4. The big number shows total failed runs.
 5. Save as: **Failed Runs**
 
-### Step 6 — Assemble the lineage dashboard
+### Step 6: Assemble the lineage dashboard
 
 Dashboard → Create → Add all four panels:
 - **Failed Runs** (top-left, small metric)
@@ -540,7 +540,7 @@ Save as: **Data Pipeline Lineage Overview**
 
 ---
 
-## PART 7 — Simulate a pipeline event and watch lineage update
+## PART 7: Simulate a pipeline event and watch lineage update
 
 The ETL job ran successfully today. Add a new run record and observe the
 dashboard refresh:
@@ -583,9 +583,9 @@ Re-run the freshness query from Q4 and confirm `ds-003` is no longer the oldest.
 
 | What you see | What to do |
 |---|---|
-| Provenance query returns 0 hits | Confirm the `_id` in edges matches the `node_id` in nodes — they must be identical strings |
-| Dashboard chart shows "No results" | Check the index pattern time range — `lineage_runs` uses `started_at`; set the time picker to last 30 days |
-| `date` field parse error on bulk load | Dates must be `YYYY-MM-DD` or `YYYY-MM-DDTHH:MM:SS` — no other formats accepted without a custom mapping |
+| Provenance query returns 0 hits | Confirm the `_id` in edges matches the `node_id` in nodes: they must be identical strings |
+| Dashboard chart shows "No results" | Check the index pattern time range: `lineage_runs` uses `started_at`; set the time picker to last 30 days |
+| `date` field parse error on bulk load | Dates must be `YYYY-MM-DD` or `YYYY-MM-DDTHH:MM:SS`: no other formats accepted without a custom mapping |
 | Aggregation on `name` field fails | Use `name.raw` (the keyword sub-field), not `name` (the text field) |
 | Updated `updated_at` not showing in freshness query | Refresh the index: `POST /lineage_nodes/_refresh`, then re-run |
 
@@ -595,7 +595,7 @@ Re-run the freshness query from Q4 and confirm `ds-003` is no longer the oldest.
 
 - **Graph-in-a-document-store**: lineage graphs can be modelled in OpenSearch using nodes + edges indices. Traversal requires multiple queries; a dedicated graph DB (Neptune, Neo4j) handles multi-hop traversal natively.
 - **Provenance**: tracing backward through edges from a target dataset to find its origin.
-- **Impact analysis**: tracing forward from a source to find all downstream consumers — essential before schema changes.
+- **Impact analysis**: tracing forward from a source to find all downstream consumers: essential before schema changes.
 - **Field lineage**: querying `schema_fields` across nodes to find every dataset that exposes a specific column.
-- **Freshness + reliability**: the `lineage_runs` index gives you a job execution log — searchable and aggregatable like any other data.
+- **Freshness + reliability**: the `lineage_runs` index gives you a job execution log: searchable and aggregatable like any other data.
 - **Real systems**: AWS DataZone, Apache Atlas, and OpenMetadata use exactly this node/edge model internally. What you built here is a functional miniature version of what those platforms provide.

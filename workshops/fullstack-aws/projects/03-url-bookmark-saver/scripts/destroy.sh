@@ -28,6 +28,10 @@ hr()   { echo -e "\n${BOLD}━━━━━━━━━━━━━━━━━�
 # ── Argument parsing ──────────────────────────────────────────
 STUDENT_NAME="${STUDENT_NAME:-}"
 AWS_REGION="${AWS_REGION:-us-east-1}"
+# These two don't affect what gets destroyed — Terraform just needs some
+# value for every variable that has no default in order to evaluate the plan.
+CREATED_DATE="${CREATED_DATE:-01-Jan-2000}"
+LAMBDA_ROLE_ARN="${LAMBDA_ROLE_ARN:-arn:aws:iam::000000000000:role/placeholder}"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -104,6 +108,8 @@ fi
 # ── Terraform destroy ─────────────────────────────────────────
 log "Running terraform destroy..."
 terraform -chdir="$TF_DIR" destroy \
+  -var "created_date=$CREATED_DATE" \
+  -var "lambda_role_arn=$LAMBDA_ROLE_ARN" \
   -auto-approve -input=false \
   -var "student_name=$STUDENT_NAME" \
   -var "aws_region=$AWS_REGION"

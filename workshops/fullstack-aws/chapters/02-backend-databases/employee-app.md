@@ -55,7 +55,7 @@ Each employee should have:
 
 # Lab Tasks
 
-## Part 1 — Rename the App Concepts
+## Part 1: Rename the App Concepts
 
 Update the app from **users** to **employees**.
 
@@ -73,7 +73,7 @@ Update the app from **users** to **employees**.
 
 ---
 
-## Part 2 — Update the Data Structure
+## Part 2: Update the Data Structure
 
 Your old app probably had:
 
@@ -96,7 +96,7 @@ Each employee must contain:
 
 ---
 
-## Part 3 — Add New Features
+## Part 3: Add New Features
 
 ### Feature 1: Get Employee by ID
 
@@ -146,7 +146,7 @@ Expected behavior:
 
 ---
 
-## Part 4 — Add Basic Error Handling
+## Part 4: Add Basic Error Handling
 
 Students should handle:
 
@@ -159,23 +159,23 @@ Students should handle:
 
 ---
 
-## Part 5 — Add Simple Search / Filter Feature
+## Part 5: Add Simple Search / Filter Feature
 
 Add at least **one** of these:
 
-### Option A — Filter by department
+### Option A: Filter by department
 
 ```http
 GET /employees?department=IT
 ```
 
-### Option B — Filter by role
+### Option B: Filter by role
 
 ```http
 GET /employees?role=Engineer
 ```
 
-### Option C — Search by name
+### Option C: Search by name
 
 ```http
 GET /employees?name=John

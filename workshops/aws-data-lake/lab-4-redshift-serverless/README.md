@@ -1,12 +1,12 @@
-# Lab 4 — Redshift Serverless and Federated Query
+# Lab 4: Redshift Serverless and Federated Query
 
-Query live data from Aurora PostgreSQL and your S3 data lake directly inside Redshift — no data movement required.
+Query live data from Aurora PostgreSQL and your S3 data lake directly inside Redshift: no data movement required.
 
 ## Lab guide
 
 | File | Purpose |
 |---|---|
-| [console-lab-redshift-federated-query.md](console-lab-redshift-federated-query.md) | Console walkthrough — connect to a Redshift workgroup, set up federated query to Aurora, and query S3 via Spectrum |
+| [console-lab-redshift-federated-query.md](console-lab-redshift-federated-query.md) | Console walkthrough: connect to a Redshift workgroup, set up federated query to Aurora, and query S3 via Spectrum |
 
 
 

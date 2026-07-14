@@ -1,12 +1,12 @@
-# Lab 3 — Data Governance with Lake Formation
+# Lab 3: Data Governance with Lake Formation
 
-Apply fine-grained access control to your data lake using AWS Lake Formation — table grants, column masking, row filters, and tag-based permissions.
+Apply fine-grained access control to your data lake using AWS Lake Formation: table grants, column masking, row filters, and tag-based permissions.
 
 ## Lab guide
 
 | File | Purpose |
 |---|---|
-| [lakeformation-console-demo.md](lakeformation-console-demo.md) | Console walkthrough — register S3 location, grant table/column/row access, apply LF-Tags, verify via Athena |
+| [lakeformation-console-demo.md](lakeformation-console-demo.md) | Console walkthrough: register S3 location, grant table/column/row access, apply LF-Tags, verify via Athena |
 
 ## Screenshots
 

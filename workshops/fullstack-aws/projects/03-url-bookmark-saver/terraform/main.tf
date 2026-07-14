@@ -12,41 +12,10 @@ resource "aws_dynamodb_table" "bookmarks" {
 }
 
 # ── IAM ───────────────────────────────────────────────────────
-
-resource "aws_iam_role" "lambda" {
-  name = "${local.prefix}-lambda-role"
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      Effect    = "Allow"
-      Principal = { Service = "lambda.amazonaws.com" }
-      Action    = "sts:AssumeRole"
-    }]
-  })
-}
-
-resource "aws_iam_role_policy_attachment" "lambda_basic" {
-  role       = aws_iam_role.lambda.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
-}
-
-resource "aws_iam_role_policy" "lambda_dynamodb" {
-  name = "${local.prefix}-dynamo-policy"
-  role = aws_iam_role.lambda.id
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      Effect = "Allow"
-      Action = [
-        "dynamodb:Scan",
-        "dynamodb:PutItem",
-        "dynamodb:DeleteItem",
-        "dynamodb:GetItem",
-      ]
-      Resource = aws_dynamodb_table.bookmarks.arn
-    }]
-  })
-}
+#
+# Uses the shared Lambda execution role your instructor pre-created for the
+# cohort (basic execution + full DynamoDB access already attached). No
+# student-managed IAM role here. Pass its ARN with -var=lambda_role_arn=...
 
 # ── CloudWatch log group ──────────────────────────────────────
 
@@ -59,7 +28,7 @@ resource "aws_cloudwatch_log_group" "lambda" {
 
 resource "aws_lambda_function" "api" {
   function_name = "${local.prefix}-api"
-  role          = aws_iam_role.lambda.arn
+  role          = var.lambda_role_arn
   runtime       = "nodejs20.x"
   handler       = "src/handler.handler"
   filename      = "${path.module}/../backend/lambda.zip"

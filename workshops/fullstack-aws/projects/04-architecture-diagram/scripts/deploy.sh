@@ -26,24 +26,31 @@ hr()   { echo -e "\n${BOLD}━━━━━━━━━━━━━━━━━�
 # ── Inputs ────────────────────────────────────────────────────────────────────
 AWS_REGION="${AWS_REGION:-us-east-1}"
 STUDENT_NAME="${STUDENT_NAME:-}"
+CREATED_DATE="${CREATED_DATE:-}"
 CI_MODE="${CI:-false}"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --name)   STUDENT_NAME="$2"; shift 2 ;;
     --region) AWS_REGION="$2";   shift 2 ;;
-    *) die "Unknown argument: $1  Usage: bash deploy.sh --name john-smith [--region us-east-1]" ;;
+    --date)   CREATED_DATE="$2"; shift 2 ;;
+    *) die "Unknown argument: $1  Usage: bash deploy.sh --name john-smith --date 12-Jul-2026 [--region us-east-1]" ;;
   esac
 done
 
-if [ -z "$STUDENT_NAME" ] && [ "$CI_MODE" = "true" ]; then
-  die "STUDENT_NAME must be set in CI."
+if [ "$CI_MODE" = "true" ]; then
+  [ -z "$STUDENT_NAME" ]  && die "STUDENT_NAME must be set in CI."
+  [ -z "$CREATED_DATE" ]  && die "CREATED_DATE must be set in CI (format dd-mmm-yyyy, e.g. 12-Jul-2026)."
 fi
 if [ -z "$STUDENT_NAME" ]; then
   echo ""
   read -rp "  Enter your name/ID (lowercase, hyphens only — e.g. john-smith): " STUDENT_NAME
 fi
 [[ "$STUDENT_NAME" =~ ^[a-z0-9-]+$ ]] || die "Name must be lowercase letters, numbers, and hyphens only."
+
+if [ -z "$CREATED_DATE" ]; then
+  read -rp "  Enter today's date for the 'date' tag (dd-mmm-yyyy, e.g. 12-Jul-2026): " CREATED_DATE
+fi
 
 hr
 echo -e "  ${BOLD}Arcflow — Architecture Diagram Generator${NC}  /  AWS Deployment"
@@ -73,7 +80,8 @@ log "Provisioning S3 static website..."
 terraform -chdir="$TF_DIR" apply \
   -auto-approve -input=false \
   -var "student_name=$STUDENT_NAME" \
-  -var "aws_region=$AWS_REGION"
+  -var "aws_region=$AWS_REGION" \
+  -var "created_date=$CREATED_DATE"
 
 # ── Step 3: Capture outputs ───────────────────────────────────────────────────
 log "Reading deployment outputs..."

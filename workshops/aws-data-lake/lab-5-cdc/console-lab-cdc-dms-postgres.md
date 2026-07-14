@@ -1,10 +1,10 @@
-# Student Lab — Postgres CDC via AWS DMS (Postgres target or S3 target)
+# Student Lab: Postgres CDC via AWS DMS (Postgres target or S3 target)
 
 End-to-end student lab: provision your own Postgres on RDS, load the oil
 data into it, and capture every INSERT/UPDATE/DELETE in real time via AWS DMS.
-The lab supports **two target options** — pick one based on what you want to learn:
+The lab supports **two target options**: pick one based on what you want to learn:
 
-| | Option A — PostgreSQL target | Option B — S3 target |
+| | Option A: PostgreSQL target | Option B: S3 target |
 |---|---|---|
 | **Target** | Second RDS Postgres instance | S3 bucket (CSV files) |
 | **Migration type** | Migrate and replicate (full load + CDC) | Replicate data changes only (CDC-only) |
@@ -58,11 +58,11 @@ By the end you'll have:
 - AWS console as `quicklabs-student<U>` in **us-west-2** (don't switch regions)
 - Sign out and sign back in after admin access is attached, so your session picks up the new policy
 - `psql` installed locally (`brew install libpq` on macOS, `apt install postgresql-client` on Linux)
-- Repo cloned locally — you'll use the loader script from `lab-3-lake-formation/demo/rds-source/`
+- Repo cloned locally: you'll use the loader script from `lab-3-lake-formation/demo/rds-source/`
 
 ---
 
-## Part 1 — Create your RDS Postgres with logical replication (15 min)
+## Part 1: Create your RDS Postgres with logical replication (15 min)
 
 ### 1.1 Create a custom parameter group
 
@@ -89,7 +89,7 @@ Open the new group → search `rds.logical_replication` → **Edit parameters** 
 |---|---|
 | Creation method | Standard create |
 | Engine | PostgreSQL |
-| Version | **17.x** (do NOT pick 18.x — DMS has version-lag for the newest PG major) |
+| Version | **17.x** (do NOT pick 18.x: DMS has version-lag for the newest PG major) |
 | Templates | Free tier (or Dev/Test) |
 | DB instance identifier | `oil-db-<U>` |
 | Master username | `postgres` |
@@ -98,7 +98,7 @@ Open the new group → search `rds.logical_replication` → **Edit parameters** 
 | Storage | 20 GB gp3, no autoscaling |
 | Public access | **Yes** |
 | VPC security group | Create new → `oil-db-sg-<U>` |
-| Initial database name | (leave blank — we'll create it) |
+| Initial database name | (leave blank: we'll create it) |
 | Backup retention | 0 days |
 | Enhanced monitoring | Off |
 | **DB parameter group (under Additional configuration)** | **`oil-cdc-pg-<U>`** (THIS is the critical part) |
@@ -138,13 +138,13 @@ aws rds wait db-instance-available --region us-west-2 --db-instance-identifier o
 
 Then re-check status. Don't proceed until `in-sync`.
 
-Once available, your RDS instance detail page should look like this — note the connection strings at the bottom:
+Once available, your RDS instance detail page should look like this: note the connection strings at the bottom:
 
 ![RDS instance available with connection strings](https://pub-5c24f672454946bb951bf35f09c3964e.r2.dev/learn/aws-data-engineer/cdc-dms/02-01-rds-created.png)
 
 ---
 
-## Part 2 — Load the oil data (3 min)
+## Part 2: Load the oil data (3 min)
 
 ```bash
 export RDSHOST=oil-db-<U>.xxx.us-west-2.rds.amazonaws.com  # copy the actual endpoint from RDS console
@@ -185,7 +185,7 @@ to step 1.4.
 
 ### 2.1 Confirm the user has replication privilege
 
-On **AWS RDS**, the master user (`postgres`) is not a true PostgreSQL superuser —
+On **AWS RDS**, the master user (`postgres`) is not a true PostgreSQL superuser:
 AWS never grants the raw `REPLICATION` attribute, so `ALTER USER postgres WITH REPLICATION;`
 will fail with *"permission denied to alter role"*. Use the RDS-specific role instead:
 
@@ -204,18 +204,18 @@ WHERE m.member = 'postgres'::regrole;
 ```
 
 > **Note:** `SELECT usename, userepl FROM pg_user WHERE usename = 'postgres'` will still
-> show `userepl = f` after this grant. That is normal on RDS — `userepl` only reflects
+> show `userepl = f` after this grant. That is normal on RDS: `userepl` only reflects
 > the direct `REPLICATION` attribute, not role membership. DMS checks replication-slot
 > creation capability (granted by `rds_replication`), not this column.
 
 ---
 
-## Part 3 — DMS S3-writer IAM role (Option B only — 1 min)
+## Part 3: DMS S3-writer IAM role (Option B only: 1 min)
 
 > **Skip this part if you chose Option A (PostgreSQL target).** Go straight to Part 4.
 
 DMS needs an IAM role with write access to your S3 bucket. **You don't have
-to create this manually** — when you configure the S3 target endpoint in
+to create this manually**: when you configure the S3 target endpoint in
 Part 5.2 Option B, the DMS console offers a **"Create new IAM role"** link that
 creates the role + inline policy in one click. Use that.
 
@@ -259,7 +259,7 @@ instead of clicking "Create new IAM role."
 
 ---
 
-## Part 4 — Create the DMS replication instance (10 min)
+## Part 4: Create the DMS replication instance (10 min)
 
 **DMS console → Replication instances → Create replication instance**
 
@@ -273,15 +273,15 @@ instead of clicking "Create new IAM role."
 | Multi-AZ | dev or non-prod (single AZ) |
 | Publicly accessible | **No** |
 
-![DMS replication instance — Settings](https://pub-5c24f672454946bb951bf35f09c3964e.r2.dev/learn/aws-data-engineer/cdc-dms/03-01-dms-setup.png)
+![DMS replication instance: Settings](https://pub-5c24f672454946bb951bf35f09c3964e.r2.dev/learn/aws-data-engineer/cdc-dms/03-01-dms-setup.png)
 
-![DMS replication instance — VPC and connectivity](https://pub-5c24f672454946bb951bf35f09c3964e.r2.dev/learn/aws-data-engineer/cdc-dms/03-02-dms-setup.png)
+![DMS replication instance: VPC and connectivity](https://pub-5c24f672454946bb951bf35f09c3964e.r2.dev/learn/aws-data-engineer/cdc-dms/03-02-dms-setup.png)
 
 Provisioning takes ~5 minutes. Move on to the endpoints while it provisions.
 
 ---
 
-## Part 5 — Create the source and target endpoints (5 min)
+## Part 5: Create the source and target endpoints (5 min)
 
 ### 5.1 Source endpoint (Postgres)
 
@@ -297,21 +297,21 @@ Provisioning takes ~5 minutes. Move on to the endpoints while it provisions.
 | Database name | `oil` |
 | User name | `postgres` |
 | Password | your password |
-| **SSL mode** | **`require`** — NOT `none` (RDS rejects unencrypted) |
+| **SSL mode** | **`require`**: NOT `none` (RDS rejects unencrypted) |
 
 ![Source endpoint configuration](https://pub-5c24f672454946bb951bf35f09c3964e.r2.dev/learn/aws-data-engineer/cdc-dms/03-03-dms-endpoint-setup.png)
 
 **Test connection** (pick `oil-cdc-rep-<U>` as the rig). Must say "Successfully connected" before continuing.
 
-![Source endpoint test — Successful](https://pub-5c24f672454946bb951bf35f09c3964e.r2.dev/learn/aws-data-engineer/cdc-dms/03-04-dms-endpoint-setup.png)
+![Source endpoint test: Successful](https://pub-5c24f672454946bb951bf35f09c3964e.r2.dev/learn/aws-data-engineer/cdc-dms/03-04-dms-endpoint-setup.png)
 
 **Common error here:** `no pg_hba.conf entry for host ... no encryption` means SSL mode is still `none`. Modify the endpoint, change to `require`, retest.
 
-### 5.2 Target endpoint — choose your option
+### 5.2 Target endpoint: choose your option
 
 ---
 
-#### Option A — PostgreSQL RDS target (screenshots)
+#### Option A: PostgreSQL RDS target (screenshots)
 
 Create a second RDS Postgres instance to receive the replicated data, then point DMS at it.
 
@@ -335,15 +335,15 @@ CREATE DATABASE oil_target;
 | Password | your password |
 | **SSL mode** | **`require`** |
 
-![Target endpoint configuration — PostgreSQL](https://pub-5c24f672454946bb951bf35f09c3964e.r2.dev/learn/aws-data-engineer/cdc-dms/03-05-dms-target-endpoint-setup.png)
+![Target endpoint configuration: PostgreSQL](https://pub-5c24f672454946bb951bf35f09c3964e.r2.dev/learn/aws-data-engineer/cdc-dms/03-05-dms-target-endpoint-setup.png)
 
 **Test connection** against `oil-cdc-rep-<U>`. Must say "Successfully connected".
 
-![Target endpoint test — Successful](https://pub-5c24f672454946bb951bf35f09c3964e.r2.dev/learn/aws-data-engineer/cdc-dms/03-06-dms-target-endpoint-setup.png)
+![Target endpoint test: Successful](https://pub-5c24f672454946bb951bf35f09c3964e.r2.dev/learn/aws-data-engineer/cdc-dms/03-06-dms-target-endpoint-setup.png)
 
 ---
 
-#### Option B — S3 target
+#### Option B: S3 target
 
 **DMS console → Endpoints → Create endpoint**
 
@@ -352,7 +352,7 @@ CREATE DATABASE oil_target;
 | Endpoint type | **Target** |
 | Endpoint identifier | `oil-target-s3-<U>` |
 | Target engine | **Amazon S3** |
-| IAM role ARN | Click **"Create new IAM role"** — the console creates one with the right permissions. (Or paste the ARN of `dms-cdc-s3-role-<U>` if you pre-created it in Part 3.) |
+| IAM role ARN | Click **"Create new IAM role"**: the console creates one with the right permissions. (Or paste the ARN of `dms-cdc-s3-role-<U>` if you pre-created it in Part 3.) |
 | Bucket name | `quicklabs-student<U>-curated` |
 | Bucket folder | `cdc` (DMS will create `{bucketFolder}/{schema}/{table}/` underneath automatically) |
 
@@ -369,7 +369,7 @@ CREATE DATABASE oil_target;
 
 ---
 
-## Part 6 — Create the CDC task (3 min)
+## Part 6: Create the CDC task (3 min)
 
 **DMS console → Database migration tasks → Create task**
 
@@ -383,9 +383,9 @@ CREATE DATABASE oil_target;
 | Start task on create | **Yes** | **Yes** |
 | Table mappings (Wizard) | Schema `public`, table `crude_oil_daily`, **Include** | Schema `public`, table `crude_oil_daily`, **Include** |
 
-![Create migration task — configuration](https://pub-5c24f672454946bb951bf35f09c3964e.r2.dev/learn/aws-data-engineer/cdc-dms/04-01-dms-cdc-task-creation.png)
+![Create migration task: configuration](https://pub-5c24f672454946bb951bf35f09c3964e.r2.dev/learn/aws-data-engineer/cdc-dms/04-01-dms-cdc-task-creation.png)
 
-![Create migration task — table mappings](https://pub-5c24f672454946bb951bf35f09c3964e.r2.dev/learn/aws-data-engineer/cdc-dms/04-02-dms-cdc-task-creation.png)
+![Create migration task: table mappings](https://pub-5c24f672454946bb951bf35f09c3964e.r2.dev/learn/aws-data-engineer/cdc-dms/04-02-dms-cdc-task-creation.png)
 
 ![Table mapping selection rule detail](https://pub-5c24f672454946bb951bf35f09c3964e.r2.dev/learn/aws-data-engineer/cdc-dms/04-03-dms-cdc-task-creation.png)
 
@@ -399,7 +399,7 @@ If status goes to `Failed`, check `Last error message` on the task detail page. 
 
 ---
 
-## Part 7 — Verify the migration and watch CDC in action (5 min)
+## Part 7: Verify the migration and watch CDC in action (5 min)
 
 Run the INSERT/UPDATE/DELETE statements from your psql window connected to the **source** database (`oil`). Observe results in your chosen target.
 
@@ -424,7 +424,7 @@ INSERT INTO public.crude_oil_daily (trade_ts, open, high, low, close, volume, ti
 
 ---
 
-### Option A — Verify in the PostgreSQL target
+### Option A: Verify in the PostgreSQL target
 
 Connect to the target database and confirm the full load landed and changes are replicated:
 
@@ -444,13 +444,13 @@ WHERE trade_ts >= '2026-06-01'
 ORDER BY trade_ts;
 ```
 
-![Migration complete — 6367 rows replicated to oil_target](https://pub-5c24f672454946bb951bf35f09c3964e.r2.dev/learn/aws-data-engineer/cdc-dms/05-01-dms-migration-complete.png)
+![Migration complete: 6367 rows replicated to oil_target](https://pub-5c24f672454946bb951bf35f09c3964e.r2.dev/learn/aws-data-engineer/cdc-dms/05-01-dms-migration-complete.png)
 
 > **What you see:** `awsdms_apply_exceptions` is a DMS bookkeeping table automatically created on the target. `crude_oil_daily` should have 6,367 rows from the initial full load, plus any CDC rows you inserted.
 
 ---
 
-### Option B — Verify in S3
+### Option B: Verify in S3
 
 Open two browser windows:
 
@@ -464,7 +464,7 @@ After each statement, wait ~10-30 seconds and refresh S3. Files appear under `cd
 | INSERT | `I` | The new row + `cdc_ts` timestamp |
 | UPDATE | `U` | Before-image and after-image of the row |
 | DELETE | `D` | The deleted row |
-| Batch INSERT (3 rows) | `I` | **One file** for all three rows — DMS batches related changes |
+| Batch INSERT (3 rows) | `I` | **One file** for all three rows: DMS batches related changes |
 
 ---
 
@@ -479,4 +479,4 @@ You should see for `public.crude_oil_daily`: Inserts ≥ 4, Updates = 1, Deletes
 
 ## Cleanup (REQUIRED before end of session)
 
-Stop and delete everything you created — DMS resources cost real money per hour even when idle. 
+Stop and delete everything you created: DMS resources cost real money per hour even when idle. 

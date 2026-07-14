@@ -1,13 +1,13 @@
-# Chapter 4 — API Security
+# Chapter 4: API Security
 
-Add authentication and authorization to the Employee API — from basic API key protection to JWT-based auth.
+Add authentication and authorization to the Employee API: from basic API key protection to JWT-based auth.
 
 ## Contents
 
 | File | Description |
 |------|-------------|
 | [basic-security.md](./basic-security.md) | API key auth, input validation, rate limiting basics |
-| [jwt-security.md](./jwt-security.md) | JWT authentication — login, token generation, protected routes |
+| [jwt-security.md](./jwt-security.md) | JWT authentication: login, token generation, protected routes |
 
 ## Learning Outcomes
 

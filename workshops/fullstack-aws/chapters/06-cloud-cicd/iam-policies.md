@@ -1,5 +1,15 @@
 # IAM Student Group Policies
 
+> **Superseded as the actual deployed policy.** The cohort's real sandbox
+> policy is now `student-iam-policy.json` at the repo root: one simple
+> region-locked (`us-east-1`) policy granting full access to Lambda, EC2, S3,
+> CloudWatch, and CloudFront, no per-student resource-name scoping. The
+> fine-grained, per-service, slug-scoped policies below were the original
+> design and are kept here because they're a good worked example of IAM
+> concepts (least privilege, resource ARN scoping, conditions), but they are
+> **not** what's attached to students anymore. Don't copy these into
+> `terraform-iam` expecting them to match production.
+
 Attach all policies to a single IAM Group (e.g. `StudentGroup`).
 Add student IAM users to that group.
 
@@ -19,7 +29,7 @@ Add student IAM users to that group.
 
 ---
 
-## Policy 1 — StudentEC2Policy
+## Policy 1: StudentEC2Policy
 
 > Allows launching t2.micro/t3.micro in us-east-1 only. Covers Chapter 5 Terraform lab.
 
@@ -135,7 +145,7 @@ Add student IAM users to that group.
 
 ---
 
-## Policy 2 — StudentS3Policy
+## Policy 2: StudentS3Policy
 
 > Allows creating and managing S3 buckets for frontend hosting and Lambda zip uploads.
 > Buckets are restricted by a `student-` name prefix to limit blast radius.
@@ -212,10 +222,10 @@ Add student IAM users to that group.
 
 ---
 
-## Policy 3 — StudentCloudFrontPolicy
+## Policy 3: StudentCloudFrontPolicy
 
 > Allows creating and managing CloudFront distributions and cache invalidations.
-> CloudFront is a global service — region conditions cannot be applied.
+> CloudFront is a global service: region conditions cannot be applied.
 
 ```json
 {
@@ -266,7 +276,7 @@ Add student IAM users to that group.
 
 ---
 
-## Policy 4 — StudentLambdaPolicy
+## Policy 4: StudentLambdaPolicy
 
 > Allows creating and updating Lambda functions in us-east-1.
 > Function names must be prefixed with `student-` to limit scope.
@@ -327,10 +337,10 @@ Add student IAM users to that group.
 
 ---
 
-## Policy 5 — StudentAPIGatewayPolicy
+## Policy 5: StudentAPIGatewayPolicy
 
 > Allows full management of API Gateway resources in us-east-1.
-> API Gateway uses a path-based ARN — restrict to student-tagged APIs where possible.
+> API Gateway uses a path-based ARN: restrict to student-tagged APIs where possible.
 
 ```json
 {
@@ -378,7 +388,7 @@ Add student IAM users to that group.
 
 ---
 
-## Policy 6 — StudentIAMPolicy
+## Policy 6: StudentIAMPolicy
 
 > Allows creating IAM roles **only for Lambda** (restricted by trust policy and name prefix).
 > Students cannot create admin roles or attach arbitrary policies.
@@ -461,11 +471,11 @@ Add student IAM users to that group.
 
 ---
 
-## Policy 7 — StudentTaggingPolicy
+## Policy 7: StudentTaggingPolicy
 
 > Allows reading and managing resource tags across all AWS services.
 > Required for the Lambda and S3 consoles to display and manage tags.
-> `tag:*` actions always require `Resource: "*"` — the Tagging API does not support resource-level restrictions.
+> `tag:*` actions always require `Resource: "*"`: the Tagging API does not support resource-level restrictions.
 
 ```json
 {
@@ -489,9 +499,9 @@ Add student IAM users to that group.
 
 ---
 
-## Policy 8 — StudentCloudWatchPolicy
+## Policy 8: StudentCloudWatchPolicy
 
-> Allows viewing CloudWatch metrics and logs — required for the Lambda Monitor tab (invocation counts, errors, duration graphs, and log streams).
+> Allows viewing CloudWatch metrics and logs: required for the Lambda Monitor tab (invocation counts, errors, duration graphs, and log streams).
 
 ```json
 {
@@ -551,10 +561,10 @@ Add student IAM users to that group.
 
 ---
 
-## Policy 9 — StudentSelfServicePolicy
+## Policy 9: StudentSelfServicePolicy
 
 > Allows students to change their own password after first login and view the account password policy.
-> Scoped to the calling user only via `aws:username` condition — students cannot change anyone else's password.
+> Scoped to the calling user only via `aws:username` condition: students cannot change anyone else's password.
 
 ```json
 {
@@ -590,9 +600,9 @@ Add student IAM users to that group.
 
 ---
 
-## Budget Control — $75 Spending Limit
+## Budget Control: $75 Spending Limit
 
-> IAM policies cannot enforce a dollar limit directly. The correct approach is **AWS Budgets + Budget Actions** — when spending hits $75, AWS automatically attaches a Deny-All policy to the StudentGroup, blocking all further actions.
+> IAM policies cannot enforce a dollar limit directly. The correct approach is **AWS Budgets + Budget Actions**: when spending hits $75, AWS automatically attaches a Deny-All policy to the StudentGroup, blocking all further actions.
 
 ### How it works
 
@@ -600,7 +610,7 @@ Add student IAM users to that group.
 Spending reaches $75 → AWS Budgets triggers action → Attaches DenyAllPolicy to StudentGroup → Students can no longer create resources
 ```
 
-### Step 1 — Create the DenyAll policy
+### Step 1: Create the DenyAll policy
 
 Create this policy in IAM. It will only be active when the budget action attaches it.
 
@@ -624,7 +634,7 @@ aws iam create-policy \
   --policy-document file://StudentDenyAllOnBudgetExceeded.json
 ```
 
-### Step 2 — Create a Budget Actions IAM Role
+### Step 2: Create a Budget Actions IAM Role
 
 AWS Budgets needs a role to attach/detach policies on your behalf:
 
@@ -656,7 +666,7 @@ aws iam attach-role-policy \
   --policy-arn arn:aws:iam::aws:policy/AWSBudgetsActionsWithAWSResourceControlAccess
 ```
 
-### Step 3 — Create the Budget with Action
+### Step 3: Create the Budget with Action
 
 ```bash
 ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
@@ -673,7 +683,7 @@ aws budgets create-budget \
     "BudgetType": "COST"
   }'
 
-# Attach a Budget Action — applies DenyAll to StudentGroup at 100% of $75
+# Attach a Budget Action: applies DenyAll to StudentGroup at 100% of $75
 aws budgets create-budget-action \
   --account-id "$ACCOUNT_ID" \
   --budget-name "StudentGroupBudget" \
@@ -690,7 +700,7 @@ aws budgets create-budget-action \
   --approval-model AUTOMATIC
 ```
 
-### Step 4 — Add an email alert at $50 (early warning)
+### Step 4: Add an email alert at $50 (early warning)
 
 ```bash
 aws budgets create-notification \
@@ -722,7 +732,7 @@ aws iam detach-group-policy \
 
 ## Setup Instructions
 
-### Step 1 — Replace account ID
+### Step 1: Replace account ID
 
 Replace `YOUR_ACCOUNT_ID` with your 12-digit AWS account ID in all policies above.
 
@@ -731,13 +741,13 @@ Replace `YOUR_ACCOUNT_ID` with your 12-digit AWS account ID in all policies abov
 aws sts get-caller-identity --query Account --output text
 ```
 
-### Step 2 — Create the IAM Group
+### Step 2: Create the IAM Group
 
 ```bash
 aws iam create-group --group-name StudentGroup
 ```
 
-### Step 3 — Create and attach each policy
+### Step 3: Create and attach each policy
 
 ```bash
 # Repeat for each policy file
@@ -750,7 +760,7 @@ aws iam attach-group-policy \
   --policy-arn arn:aws:iam::YOUR_ACCOUNT_ID:policy/StudentEC2Policy
 ```
 
-### Step 4 — Create student users and add to group
+### Step 4: Create student users and add to group
 
 ```bash
 # Create user
@@ -765,7 +775,7 @@ aws iam add-user-to-group \
 aws iam create-access-key --user-name student01
 ```
 
-### Step 5 — Update Terraform naming convention
+### Step 5: Update Terraform naming convention
 
 Ensure student Terraform configs use the `student-` prefix:
 

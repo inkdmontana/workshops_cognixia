@@ -1,4 +1,4 @@
-# Lab — Lambda + API Gateway + MongoDB on EC2
+# Lab: Lambda + API Gateway + MongoDB on EC2
 
 ## What You'll Build
 
@@ -17,18 +17,18 @@ Browser / curl → API Gateway → Lambda → MongoDB on EC2
 
 ## Prerequisites
 
-- Completed [Lab — Deploy to EC2 with CI/CD](./lab-01-ec2-cicd.md) — Terraform must be installed
-- Completed [Lab — Lambda REST API](./lab-03-lambda-rest-api.md)
+- Completed [Lab: Deploy to EC2 with CI/CD](./lab-01-ec2-cicd.md): Terraform must be installed
+- Completed [Lab: Lambda REST API](./lab-03-lambda-rest-api.md)
 - Region: **us-east-1**
 - Python and pip installed on your local machine (to build the Lambda package)
 
 ---
 
-## Part 1 — Launch EC2 with MongoDB
+## Part 1: Launch EC2 with MongoDB
 
 ### Launch the instance using Terraform
 
-Reuse the Terraform template from the previous lab (`chapters/06-cloud-cicd/terraform/`). Port **27017** is already open in the security group — confirm it is there before applying:
+Reuse the Terraform template from the previous lab (`chapters/06-cloud-cicd/terraform/`). Port **27017** is already open in the security group: confirm it is there before applying:
 
 ```bash
 # From the terraform folder
@@ -38,7 +38,7 @@ grep "27017" main.tf
 You should see:
 
 ```hcl
-# MongoDB — direct access for Lambda and testing
+# MongoDB: direct access for Lambda and testing
 ingress {
   from_port   = 27017
   to_port     = 27017
@@ -56,7 +56,7 @@ terraform init   # only needed first time
 terraform apply
 ```
 
-Note the outputs — you will need the public IP and the SSH command:
+Note the outputs: you will need the public IP and the SSH command:
 
 ```
 instance_public_ip = "x.x.x.x"
@@ -107,7 +107,7 @@ sudo systemctl restart mongod
 mongosh --eval "db.runCommand({ connectionStatus: 1 })"
 ```
 
-You should see `"ok": 1`. Note down the **EC2 public IP** — you will need it in Part 3.
+You should see `"ok": 1`. Note down the **EC2 public IP**: you will need it in Part 3.
 
 ### Seed initial data
 
@@ -134,7 +134,7 @@ Type `exit` to leave mongosh.
 
 ---
 
-## Part 2 — Build the Lambda Deployment Package
+## Part 2: Build the Lambda Deployment Package
 
 Lambda needs `pymongo` bundled with the function code. Run this on your local machine:
 
@@ -212,7 +212,7 @@ Lambda requires the handler file and all dependencies at the **root level** of t
 
 ```
 lambda-mongodb.zip
-├── lambda_function.py        ← your handler (root level — required)
+├── lambda_function.py        ← your handler (root level: required)
 ├── pymongo/                  ← pymongo package
 ├── bson/                     ← BSON serialization (bundled with pymongo)
 ├── gridfs/                   ← GridFS module (bundled with pymongo)
@@ -224,7 +224,7 @@ lambda-mongodb.zip
 
 ---
 
-## Part 3 — Create the Lambda Function
+## Part 3: Create the Lambda Function
 
 1. Go to **Lambda** → **Create function**
 2. Select **Author from scratch**
@@ -245,7 +245,7 @@ lambda-mongodb.zip
 
 1. Go to the **Configuration** tab → **Environment variables** → **Edit**
 2. Add:
-   - Key: `MONGO_HOST` — Value: `<your EC2 public IP>`
+   - Key: `MONGO_HOST`: Value: `<your EC2 public IP>`
 3. Click **Save**
 
 ### Increase the timeout
@@ -258,7 +258,7 @@ MongoDB connections can be slow on cold start:
 
 ---
 
-## Part 4 — Create the API Gateway
+## Part 4: Create the API Gateway
 
 1. Go to **API Gateway** → **Create API** → **HTTP API** → **Build**
 2. Add integration:
@@ -278,7 +278,7 @@ MongoDB connections can be slow on cold start:
 
 ---
 
-## Part 5 — Seed Some Data
+## Part 5: Seed Some Data
 
 Before testing GET, add a couple of employees:
 
@@ -294,7 +294,7 @@ curl -X POST https://<your-invoke-url>/employees \
 
 ---
 
-## Part 6 — Test the API
+## Part 6: Test the API
 
 ### GET all employees
 
@@ -335,11 +335,11 @@ Expected:
 
 ---
 
-## Part 7 — View Logs
+## Part 7: View Logs
 
 1. Go to **Lambda** → `student-mongodb-api` → **Monitor** tab
 2. Click **View CloudWatch logs**
-3. Open the latest log stream — you'll see each request and any connection errors
+3. Open the latest log stream: you'll see each request and any connection errors
 
 ---
 
@@ -348,7 +348,7 @@ Expected:
 | Concept | What happened |
 |---------|--------------|
 | Lambda + MongoDB | Lambda connects to MongoDB using `pymongo` and the EC2 public IP |
-| Deployment package | Dependencies bundled as a zip — Lambda has no package manager |
+| Deployment package | Dependencies bundled as a zip: Lambda has no package manager |
 | Environment variables | Secrets and config kept out of code |
 | Cold start timeout | MongoDB TCP handshake needs a longer timeout than the default 3s |
 | Serverless + stateful DB | Lambda is stateless; MongoDB on EC2 holds the persistent state |

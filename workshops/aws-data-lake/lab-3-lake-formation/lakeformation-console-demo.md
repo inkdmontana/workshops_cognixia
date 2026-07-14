@@ -1,8 +1,8 @@
-# Lake Formation Console Demo — Step-by-Step
+# Lake Formation Console Demo: Step-by-Step
 
 Console-only demo of Lake Formation fine-grained access control. Producer is
 `quicklabs-student8` (you), consumer is `quicklabs-student7` (any other
-student user — swap the digit if needed).
+student user: swap the digit if needed).
 
 Assumes Lab 1 is done: `quicklabs-student8-raw` and `quicklabs-student8-curated`
 exist, `quicklabs_student8_lake.curated_oil` is queryable in Athena.
@@ -27,7 +27,7 @@ exist, `quicklabs_student8_lake.curated_oil` is queryable in Athena.
 
 2. Left nav → **Administration → Administrative roles and tasks** → confirm
    `quicklabs-student8` is in **Data lake administrators**. (Should already
-   be — terraform-iam adds all 15 students.)
+   be: terraform-iam adds all 15 students.)
 3. **Athena console** as student8 → confirm
    `SELECT * FROM quicklabs_student8_lake.curated_oil LIMIT 5` works.
 
@@ -35,7 +35,7 @@ exist, `quicklabs_student8_lake.curated_oil` is queryable in Athena.
 
 ## One-time setup (3 console actions, 3 min)
 
-### Setup 1 — Register the curated S3 location with LF
+### Setup 1: Register the curated S3 location with LF
 
 **Lake Formation console** → **Administration → Data lake locations** →
 **Register location**.
@@ -57,9 +57,9 @@ exist, `quicklabs_student8_lake.curated_oil` is queryable in Athena.
 > `lakeformation-user-policy.json` (`ManageLakeFormationServiceLinkedRolePolicies`
 > Sid). After `terraform apply`, sign out + back in and retry.
 
-### Setup 2 — Strip the legacy `IAMAllowedPrincipals` grant
+### Setup 2: Strip the legacy `IAMAllowedPrincipals` grant
 
-Without this, LF doesn't enforce — any IAM-allowed user bypasses LF rules.
+Without this, LF doesn't enforce: any IAM-allowed user bypasses LF rules.
 
 **Lake Formation console** → **Data permissions** → filter
 **Database = `quicklabs_student8_lake`**.
@@ -68,13 +68,13 @@ For each row where **Principal = `IAMAllowedPrincipals`**: select → **Revoke**
 
 (If none appear, you're already clean.)
 
-### Setup 3 — Note the consumer ARN
+### Setup 3: Note the consumer ARN
 
 `arn:aws:iam::123456789012:user/quicklabs-student7`
 
 ---
 
-## Demo 1 — Baseline: consumer cannot query (2 min)
+## Demo 1: Baseline: consumer cannot query (2 min)
 
 Open **incognito / private window**, log in as `quicklabs-student7`.
 
@@ -91,7 +91,7 @@ SELECT * FROM quicklabs_student8_lake.curated_oil LIMIT 5;
 ```
 
 Expect `Insufficient Lake Formation permission(s)` or `Table not found`.
-Either is fine — both prove "no grant = no access."
+Either is fine: both prove "no grant = no access."
 
 ![Athena query showing access denied before any grant](https://pub-5c24f672454946bb951bf35f09c3964e.r2.dev/learn/aws-data-engineer/lake-formation/01-03-lf-athena-query-access-denied.png)
 
@@ -99,7 +99,7 @@ Leave this window open. Refresh / rerun after each grant change.
 
 ---
 
-## Demo 2 — Table-level SELECT grant (3 min)
+## Demo 2: Table-level SELECT grant (3 min)
 
 Back in student8's window.
 
@@ -135,20 +135,20 @@ Returns 5 rows, all columns.
 
 **Talking point:** "Student7 has no IAM access to student8's S3 bucket. The
 query still works because LF issued temporary credentials via
-`GetDataAccess`. That's the value of Setup 1 — registering the location."
+`GetDataAccess`. That's the value of Setup 1: registering the location."
 
 ---
 
-## Demo 3 — Column-level grant (5 min)
+## Demo 3: Column-level grant (5 min)
 
 Back in student8's window. **Revoke** the table-level SELECT grant first.
 
 **Data permissions** → find `quicklabs-student7` + `curated_oil` (Select/Describe) row → **Revoke**.
 
 Now re-grant with columns scoped. The console UI for column grants has moved
-around in recent versions — try both paths in order.
+around in recent versions: try both paths in order.
 
-### Path A — newer console (column picker inline)
+### Path A: newer console (column picker inline)
 
 **Data permissions → Grant**, same fields as Demo 2 **except**:
 
@@ -160,7 +160,7 @@ around in recent versions — try both paths in order.
 
 **Grant**.
 
-### Path B — fallback (works on any console version)
+### Path B: fallback (works on any console version)
 
 If you don't see a column picker anywhere on the Grant page, use a data
 cells filter (the same mechanism Demo 4 uses, just with no row filter):
@@ -201,13 +201,13 @@ SELECT volume FROM quicklabs_student8_lake.curated_oil LIMIT 3;
 ```
 
 **Talking point:** "LF strips masked columns at query time. Even if the
-analyst explicitly names a hidden column, they get a permission error — not
+analyst explicitly names a hidden column, they get a permission error: not
 NULLs or empty values. This is exactly what GDPR / PII redaction looks like
 at the data layer."
 
 ---
 
-## Demo 4 — Row-level filter via data cells filter (5 min)
+## Demo 4: Row-level filter via data cells filter (5 min)
 
 Revoke Demo 3's column grant first.
 
@@ -222,17 +222,17 @@ Revoke Demo 3's column grant first.
 | Row-level access | **Filter expression** |
 | Filter expression | `month = 12` |
 
-![Create data filter — name and target table](https://pub-5c24f672454946bb951bf35f09c3964e.r2.dev/learn/aws-data-engineer/lake-formation/02-01-lf-grant-data-filter.png)
+![Create data filter: name and target table](https://pub-5c24f672454946bb951bf35f09c3964e.r2.dev/learn/aws-data-engineer/lake-formation/02-01-lf-grant-data-filter.png)
 
-![Create data filter — column access settings](https://pub-5c24f672454946bb951bf35f09c3964e.r2.dev/learn/aws-data-engineer/lake-formation/02-02-lf-grant-data-filter.png)
+![Create data filter: column access settings](https://pub-5c24f672454946bb951bf35f09c3964e.r2.dev/learn/aws-data-engineer/lake-formation/02-02-lf-grant-data-filter.png)
 
-![Create data filter — row filter expression](https://pub-5c24f672454946bb951bf35f09c3964e.r2.dev/learn/aws-data-engineer/lake-formation/02-03-lf-grant-data-filter.png)
+![Create data filter: row filter expression](https://pub-5c24f672454946bb951bf35f09c3964e.r2.dev/learn/aws-data-engineer/lake-formation/02-03-lf-grant-data-filter.png)
 
 > **LF row-filter limitations:**
 > - Supports **STRING, INT, BIGINT, BOOLEAN** column types only.
-> - **DATE and TIMESTAMP are NOT supported** — you cannot filter rows by
+> - **DATE and TIMESTAMP are NOT supported**: you cannot filter rows by
 >   date even though the column exists.
-> - No literal casts (`date '...'`, `timestamp '...'`) — that's Athena
+> - No literal casts (`date '...'`, `timestamp '...'`): that's Athena
 >   syntax, not LF syntax.
 >
 > For an oil-price table the practical filter columns are `month` (INT),
@@ -255,9 +255,9 @@ Then grant SELECT on the filter:
 | Table permissions | **Data filter** → `student7-recent-oil` |
 | Permissions | **Select** |
 
-![Grant permissions using the data filter — principal selection](https://pub-5c24f672454946bb951bf35f09c3964e.r2.dev/learn/aws-data-engineer/lake-formation/02-04-lf-grant-data-filter.png)
+![Grant permissions using the data filter: principal selection](https://pub-5c24f672454946bb951bf35f09c3964e.r2.dev/learn/aws-data-engineer/lake-formation/02-04-lf-grant-data-filter.png)
 
-![Grant permissions using the data filter — filter selection](https://pub-5c24f672454946bb951bf35f09c3964e.r2.dev/learn/aws-data-engineer/lake-formation/02-05-lf-grant-data-filter.png)
+![Grant permissions using the data filter: filter selection](https://pub-5c24f672454946bb951bf35f09c3964e.r2.dev/learn/aws-data-engineer/lake-formation/02-05-lf-grant-data-filter.png)
 
 **Grant**.
 
@@ -272,11 +272,11 @@ SELECT MIN(month), MAX(month), COUNT(*) FROM quicklabs_student8_lake.curated_oil
 
 **Talking point:** "Same physical Parquet files. Same SQL. LF rewrites the
 query to add `WHERE month = 12` and strips columns. The analyst can't see
-months 1-11 — and can't even tell that data exists."
+months 1-11: and can't even tell that data exists."
 
 ---
 
-## Demo 5 — LF-Tags (8 min)
+## Demo 5: LF-Tags (8 min)
 
 Revoke Demo 4's grant first.
 
@@ -335,7 +335,7 @@ top right **Edit LF-Tags** → `sensitivity = restricted`. **Save**.
 
 ![Grant permissions using LF-Tag expression](https://pub-5c24f672454946bb951bf35f09c3964e.r2.dev/learn/aws-data-engineer/lake-formation/04-01-grant-resource-lf-tags.png)
 
-![Confirm grant by LF-Tag — sensitivity=public](https://pub-5c24f672454946bb951bf35f09c3964e.r2.dev/learn/aws-data-engineer/lake-formation/04-02-grant-resource-lf-tags.png)
+![Confirm grant by LF-Tag: sensitivity=public](https://pub-5c24f672454946bb951bf35f09c3964e.r2.dev/learn/aws-data-engineer/lake-formation/04-02-grant-resource-lf-tags.png)
 
 **Verify** in student7's window:
 
@@ -347,11 +347,11 @@ SELECT * FROM quicklabs_student8_lake.curated_oil LIMIT 5;
 **Talking point:** "I never named student7, never named the table, never
 named a column. I said 'whoever has read on `sensitivity = public`.' If I
 tag 200 more tables `sensitivity = public` tomorrow, student7 gets read on
-all of them automatically — no new grants. This is how LF scales."
+all of them automatically: no new grants. This is how LF scales."
 
 ---
 
-## Demo 6 (optional) — CloudTrail audit (3 min)
+## Demo 6 (optional): CloudTrail audit (3 min)
 
 **CloudTrail console** → **Event history**.
 
@@ -360,7 +360,7 @@ Filters:
 - **Event source** = `lakeformation.amazonaws.com`
 - Time range: last 30 minutes
 
-Look for `GetDataAccess` events. Click one — `requestParameters.resource`
+Look for `GetDataAccess` events. Click one: `requestParameters.resource`
 shows exactly which table and columns LF authorized for that query. That's
 the audit trail.
 
@@ -372,9 +372,9 @@ In student8's window:
 
 - **Data permissions** → revoke any rows still granted to student7.
 - **Data filters** → delete `student7-recent-oil`.
-- **LF-Tags** → delete `sensitivity` (optional — keeps account tidy).
+- **LF-Tags** → delete `sensitivity` (optional: keeps account tidy).
 
-Leave the registered S3 location alone — useful for future demos.
+Leave the registered S3 location alone: useful for future demos.
 
 ---
 

@@ -29,6 +29,9 @@ env:
   PROJECT_DIR: projects/04-architecture-diagram
   AWS_REGION: ${{ inputs.aws_region || 'us-east-1' }}
   STUDENT_NAME: ${{ inputs.student_name }}
+  # Doesn't affect what gets destroyed — Terraform just needs some value for
+  # every variable that has no default in order to evaluate the plan.
+  CREATED_DATE: '01-Jan-2000'
 
 # ── Stage 1: Preflight ────────────────────────────────────────────────────────
 jobs:
@@ -118,7 +121,8 @@ jobs:
           terraform refresh \
             -input=false \
             -var="student_name=${STUDENT_NAME}" \
-            -var="aws_region=${AWS_REGION}" 2>/dev/null || true
+            -var="aws_region=${AWS_REGION}" \
+            -var="created_date=${CREATED_DATE}" 2>/dev/null || true
 
           BUCKET=$(terraform output -raw frontend_bucket 2>/dev/null || echo "")
           if [ -n "$BUCKET" ]; then
@@ -135,7 +139,8 @@ jobs:
             -auto-approve \
             -input=false \
             -var="student_name=${STUDENT_NAME}" \
-            -var="aws_region=${AWS_REGION}"
+            -var="aws_region=${AWS_REGION}" \
+            -var="created_date=${CREATED_DATE}"
 
       - name: Publish destroy summary
         if: always()

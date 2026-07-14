@@ -24,3 +24,8 @@ variable "created_date" {
   description = "Creation date for the `date` tag, format dd-mmm-yyyy (e.g. 12-Jul-2026)."
   type        = string
 }
+
+variable "lambda_role_arn" {
+  description = "ARN of the shared Lambda execution role your instructor pre-created for the cohort. You don't create your own IAM role."
+  type        = string
+}

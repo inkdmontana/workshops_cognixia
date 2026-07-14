@@ -1,4 +1,4 @@
-# AWS Data Lake — admin end-to-end walkthrough
+# AWS Data Lake: admin end-to-end walkthrough
 
 Run the **full pipeline once under your admin credentials** before layering on the student IAM policy. This proves the data flow works at all; afterwards you re-run as a sandboxed student and everything you fixed here only fails because of policy.
 
@@ -16,7 +16,7 @@ Total runtime ~10–15 min including crawler + job waits. Cost ~$0.50.
 - `~/Downloads/Crude_Oil_historical_data.csv` is in place
 - You're running this from this folder (`workshops/aws-data-lake/`) so `oil_csv_to_parquet.py` is at the relative path
 
-## Step 0 — variables
+## Step 0: variables
 
 ```bash
 USERNAME=demo
@@ -26,7 +26,7 @@ export AWS_DEFAULT_REGION=us-west-2
 echo "Account: $ACCOUNT_ID, region: $AWS_DEFAULT_REGION, username: $USERNAME"
 ```
 
-## Step 1 — S3 buckets (raw, curated, scripts, athena-results)
+## Step 1: S3 buckets (raw, curated, scripts, athena-results)
 
 ```bash
 for zone in raw curated scripts athena-results; do
@@ -47,7 +47,7 @@ aws s3 ls | grep "quicklabs-${USERNAME}-"
 
 Expect 4 buckets listed.
 
-## Step 2 — Upload CSV + Glue script
+## Step 2: Upload CSV + Glue script
 
 ```bash
 aws s3 cp /Users/kchandan/Documents/bcr/training/Crude_Oil_historical_data.csv \
@@ -62,7 +62,7 @@ aws s3 ls s3://quicklabs-${USERNAME}-scripts/
 
 Expect both objects listed.
 
-## Step 3 — Glue service role
+## Step 3: Glue service role
 
 ```bash
 # Trust policy
@@ -100,7 +100,7 @@ aws iam put-role-policy \
 aws iam get-role --role-name "quicklabs-${USERNAME}-glue-role" --query Role.Arn
 ```
 
-## Step 4 — Glue database
+## Step 4: Glue database
 
 ```bash
 aws glue create-database \
@@ -109,7 +109,7 @@ aws glue create-database \
 aws glue get-database --name "quicklabs_${USERNAME_UNDERSCORED}_lake"
 ```
 
-## Step 5 — Crawler over raw zone → discover schema → write to catalog
+## Step 5: Crawler over raw zone → discover schema → write to catalog
 
 ```bash
 aws glue create-crawler \
@@ -136,7 +136,7 @@ aws glue get-tables --database-name "quicklabs_${USERNAME_UNDERSCORED}_lake" \
 
 Expect one row: `raw_oil`, location pointing at `s3://.../oil/`, 8 columns (the CSV header).
 
-## Step 6 — Athena workgroup + first query (raw count)
+## Step 6: Athena workgroup + first query (raw count)
 
 ```bash
 # Workgroup with results going to the dedicated bucket
@@ -178,7 +178,7 @@ aws athena get-query-results --query-execution-id "$QUERY_ID" \
 
 Expect `row_count` then `6367` (one less than the 6368 lines in the file because the header row).
 
-## Step 7 — Glue ETL job (CSV → partitioned Parquet)
+## Step 7: Glue ETL job (CSV → partitioned Parquet)
 
 ```bash
 aws glue create-job \
@@ -216,7 +216,7 @@ aws s3 ls s3://quicklabs-${USERNAME}-curated/oil/ --recursive | wc -l
 
 Expect ~26 partitions (year=2000 through year=2025), each with one Parquet file.
 
-## Step 8 — Crawler over curated → register Parquet table
+## Step 8: Crawler over curated → register Parquet table
 
 ```bash
 aws glue create-crawler \
@@ -240,7 +240,7 @@ aws glue get-tables --database-name "quicklabs_${USERNAME_UNDERSCORED}_lake" \
 
 Expect both `raw_oil` and `curated_oil`. The curated one shows ParquetInputFormat and 1 partition key (`year`).
 
-## Step 9 — Athena query against the Parquet table — the loop closes
+## Step 9: Athena query against the Parquet table: the loop closes
 
 ```bash
 QUERY_ID=$(aws athena start-query-execution \
@@ -266,13 +266,13 @@ Expect a 26-row result, oil prices per year from 2000 to 2025.
 
 You've now done the full S3 → Crawler → Catalog → ETL → Parquet → Athena loop. Everything below this line is optional / cleanup.
 
-## Step 10 — Glue Interactive Session (notebook), optional
+## Step 10: Glue Interactive Session (notebook), optional
 
 For interactive PySpark development against Glue (Jupyter-style), you can either:
 
-**(a) Glue Studio Notebook UI** — easiest. Console → Glue Studio → Notebooks → Create. Pick Glue 4.0+, role `quicklabs-${USERNAME}-glue-role`, name it `quicklabs-${USERNAME}-nb`. Notebook opens in browser, attached to a live Glue session.
+**(a) Glue Studio Notebook UI**: easiest. Console → Glue Studio → Notebooks → Create. Pick Glue 4.0+, role `quicklabs-${USERNAME}-glue-role`, name it `quicklabs-${USERNAME}-nb`. Notebook opens in browser, attached to a live Glue session.
 
-**(b) CLI session + local Jupyter** — for instructors who want to demo programmatically:
+**(b) CLI session + local Jupyter**: for instructors who want to demo programmatically:
 
 ```bash
 # Start a session
@@ -306,7 +306,7 @@ aws glue get-statement --session-id "$SESSION_ID" --id "$STATEMENT_ID" --query S
 aws glue delete-session --id "$SESSION_ID"
 ```
 
-Students can use Glue Studio notebooks: the `GlueOwnSessions` statement in `student-user-policy.json` allows `glue:*` on `session/quicklabs-${USERNAME}-*`. The student must **explicitly name** their notebook with the `quicklabs-<USER>-` prefix (the notebook name becomes the session name) — Glue Studio's auto-generated session names won't match the policy.
+Students can use Glue Studio notebooks: the `GlueOwnSessions` statement in `student-user-policy.json` allows `glue:*` on `session/quicklabs-${USERNAME}-*`. The student must **explicitly name** their notebook with the `quicklabs-<USER>-` prefix (the notebook name becomes the session name): Glue Studio's auto-generated session names won't match the policy.
 
 ## Cleanup
 
@@ -337,7 +337,7 @@ aws iam delete-role        --role-name "quicklabs-${USERNAME}-glue-role"
 - The Glue role can read from `quicklabs-${USERNAME}-raw`, write to `quicklabs-${USERNAME}-curated`, and write to the catalog ✅
 - The Glue ETL job script works against the real CSV ✅
 - Athena can query both raw CSV and curated Parquet through the workgroup ✅
-- The whole pipeline is sound — any failure when re-running this as a sandboxed student is a **policy issue**, not a pipeline issue
+- The whole pipeline is sound: any failure when re-running this as a sandboxed student is a **policy issue**, not a pipeline issue
 
 ## Next: re-run as a sandboxed student
 

@@ -1,6 +1,6 @@
-# Chapter 1 — Vibe Coding Fundamentals
+# Chapter 1: Vibe Coding Fundamentals
 
-Learn how to use AI assistants effectively to build real software — not just generate snippets, but drive full application development through structured prompting.
+Learn how to use AI assistants effectively to build real software: not just generate snippets, but drive full application development through structured prompting.
 
 ## Contents
 

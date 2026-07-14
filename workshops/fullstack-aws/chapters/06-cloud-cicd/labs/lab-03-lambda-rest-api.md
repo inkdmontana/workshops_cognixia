@@ -1,8 +1,8 @@
-# Lab — Lambda REST API with API Gateway
+# Lab: Lambda REST API with API Gateway
 
 ## What You'll Build
 
-A serverless REST API backed by Lambda — no servers, no nginx, no EC2.
+A serverless REST API backed by Lambda: no servers, no nginx, no EC2.
 API Gateway receives HTTP requests and invokes your Lambda function.
 
 ```
@@ -20,12 +20,12 @@ You will expose two endpoints:
 
 ## Prerequisites
 
-- Completed [Lab — Lambda S3 Trigger](./lab-02-lambda-s3-trigger.md)
+- Completed [Lab: Lambda S3 Trigger](./lab-02-lambda-s3-trigger.md)
 - Region set to **us-east-1**
 
 ---
 
-## Part 1 — Create the Lambda Function
+## Part 1: Create the Lambda Function
 
 1. Go to **Lambda** → **Create function**
 2. Select **Author from scratch**
@@ -42,7 +42,7 @@ In the **Code** tab, replace the default code with:
 ```python
 import json
 
-# In-memory store (resets on cold start — good enough for the lab)
+# In-memory store (resets on cold start: good enough for the lab)
 items = [
     {"id": 1, "name": "Laptop"},
     {"id": 2, "name": "Monitor"},
@@ -88,7 +88,7 @@ Click **Deploy**.
 
 ---
 
-## Part 2 — Create the API Gateway
+## Part 2: Create the API Gateway
 
 1. Go to **API Gateway** → **Create API**
 2. Choose **HTTP API** → click **Build**
@@ -112,18 +112,18 @@ Click **Next** → **Next** → **Create**.
 
 ---
 
-## Part 3 — Get the API URL
+## Part 3: Get the API URL
 
 1. In the left sidebar, click **Deploy** → **Stages**
 2. Click the **`$default`** stage
-3. Copy the **Invoke URL** — it looks like:
+3. Copy the **Invoke URL**: it looks like:
    ```
    https://abc123.execute-api.us-east-1.amazonaws.com
    ```
 
 ---
 
-## Part 4 — Test the API
+## Part 4: Test the API
 
 Open a terminal and run:
 
@@ -174,7 +174,7 @@ Expected response:
 
 ---
 
-## Part 5 — View Logs in CloudWatch
+## Part 5: View Logs in CloudWatch
 
 1. Go to **Lambda** → `student-rest-api` → **Monitor** tab
 2. Click **View CloudWatch logs**
@@ -185,7 +185,7 @@ Expected response:
    Request: POST /items
    ```
 
-> Every `print()` call in your Lambda is a CloudWatch log entry — this is how you debug a serverless API.
+> Every `print()` call in your Lambda is a CloudWatch log entry: this is how you debug a serverless API.
 
 ---
 
@@ -197,7 +197,7 @@ Expected response:
 | Lambda as a web handler | One function handles all routes via `rawPath` and `method` |
 | Payload format 2.0 | API Gateway sends a structured event with `requestContext.http.method` |
 | JSON responses | Lambda returns `statusCode`, `headers`, and `body` |
-| Serverless debugging | CloudWatch Logs captures all print output — no SSH needed |
+| Serverless debugging | CloudWatch Logs captures all print output: no SSH needed |
 
 ---
 

@@ -1,4 +1,4 @@
-# Full-Stack on AWS — Student Onboarding
+# Full-Stack on AWS: Student Onboarding
 
 Welcome. By the end of this page you'll have:
 
@@ -6,7 +6,7 @@ Welcome. By the end of this page you'll have:
 2. Signed in to the AWS console with your sandbox user
 3. Confirmed you can create your first resource in your namespace
 
-## 1 — GitHub
+## 1: GitHub
 
 You should have received two emails from GitHub:
 
@@ -16,18 +16,18 @@ You should have received two emails from GitHub:
 Verify Copilot is on:
 
 ```bash
-# Open any .ts / .py file in VS Code — Copilot suggestions appear inline.
+# Open any .ts / .py file in VS Code: Copilot suggestions appear inline.
 # If not: VS Code → Extensions → install "GitHub Copilot" → sign in with your GitHub account.
 ```
 
-## 2 — AWS console
+## 2: AWS console
 
 Your instructor will send you:
 
 ```
 Console URL : https://{ACCOUNT_ID}.signin.aws.amazon.com/console
 Username    : {your-username}
-Password    : <temporary — you'll be forced to change it on first login>
+Password    : <temporary: you'll be forced to change it on first login>
 Region      : us-east-1  (anything else is denied)
 ```
 
@@ -36,7 +36,7 @@ On sign-in:
 - AWS will force a password change. Pick a strong one.
 - The top-right region selector must read **US East (N. Virginia) us-east-1**. Anything else and most actions will be denied.
 
-## 3 — Your namespace
+## 3: Your namespace
 
 Every resource you create must be named with the prefix `student-{your-slug}-`.
 
@@ -55,7 +55,7 @@ Resources named any other way will be denied by the sandbox policy. When running
 terraform apply -var="student_name=alice-johnson"
 ```
 
-## 4 — Smoke test
+## 4: Smoke test
 
 Run these before starting any lab to confirm your sandbox is working:
 
@@ -73,7 +73,7 @@ aws s3 rb s3://student-{your-slug}-test
 
 **Region lock:**
 ```bash
-# Should be denied — us-west-2 is not allowed
+# Should be denied: us-west-2 is not allowed
 aws s3 ls --region us-west-2
 ```
 
@@ -83,9 +83,9 @@ aws s3 ls --region us-west-2
 aws iam create-user --user-name test-user
 ```
 
-If any of the "should succeed" steps fail, paste the full error (action + resource ARN) in Slack — your instructor will fix the sandbox policy.
+If any of the "should succeed" steps fail, paste the full error (action + resource ARN) in Slack: your instructor will fix the sandbox policy.
 
 ## Getting help
 
 - Cohort questions: post in your cohort Slack channel
-- Stuck on AWS permissions: paste the full error message — your instructor will adjust the sandbox policy
+- Stuck on AWS permissions: paste the full error message: your instructor will adjust the sandbox policy

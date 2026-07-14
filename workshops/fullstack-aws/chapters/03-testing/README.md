@@ -1,12 +1,12 @@
-# Chapter 3 — Test-Driven Development
+# Chapter 3: Test-Driven Development
 
-Learn TDD by writing tests for the Employee API — first the test, then the code that makes it pass.
+Learn TDD by writing tests for the Employee API: first the test, then the code that makes it pass.
 
 ## Contents
 
 | File | Description |
 |------|-------------|
-| [tdd-lab.md](./tdd-lab.md) | TDD cycle lab — extend the Employee API using red/green/refactor |
+| [tdd-lab.md](./tdd-lab.md) | TDD cycle lab: extend the Employee API using red/green/refactor |
 
 ## Learning Outcomes
 

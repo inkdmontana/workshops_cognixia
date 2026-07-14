@@ -1,4 +1,4 @@
-# Lab — Deploy to EC2 with Shell Script and GitHub Actions
+# Lab: Deploy to EC2 with Shell Script and GitHub Actions
 
 ## What You Will Do
 
@@ -8,7 +8,7 @@
 
 ---
 
-## Part 1 — Launch EC2 with Terraform
+## Part 1: Launch EC2 with Terraform
 
 ### Step 1: Navigate to the Terraform folder
 
@@ -47,18 +47,18 @@ ssh_command        = "ssh -i ssh-keys/<your-name>-key.pem ubuntu@54.123.45.67"
 
 Terraform writes the private key to `ssh-keys/` inside the terraform folder. Copy the exact `ssh_command` value from your output.
 
-Save the public IP — you will need it throughout this lab.
+Save the public IP: you will need it throughout this lab.
 
 ---
 
-## Part 2 — Deploy nginx with a Shell Script
+## Part 2: Deploy nginx with a Shell Script
 
 ### Step 1: SSH into the EC2 instance
 
 Use the `ssh_command` from the Terraform output:
 
 ```bash
-# Use the exact ssh_command from terraform output — or construct it:
+# Use the exact ssh_command from terraform output: or construct it:
 ssh -i ssh-keys/<your-name>-key.pem ubuntu@YOUR_EC2_IP
 ```
 
@@ -94,14 +94,14 @@ echo "Done! Open http://$(curl -s http://169.254.169.254/latest/meta-data/public
 
 ### Step 3: Open the browser
 
-Open `http://YOUR_EC2_IP` — you should see:
+Open `http://YOUR_EC2_IP`: you should see:
 
 > **Hello World from EC2!**
 > Deployed via shell script.
 
 ---
 
-## Part 3 — Deploy the Same Page using GitHub Actions
+## Part 3: Deploy the Same Page using GitHub Actions
 
 Now automate the same deployment so every push to GitHub updates the page.
 
@@ -203,16 +203,16 @@ Go to your repo → **Actions** tab → click the running workflow → watch eac
 
 ### Step 7: Verify
 
-Open `http://YOUR_EC2_IP` — page now says **Deployed via GitHub Actions.**
+Open `http://YOUR_EC2_IP`: page now says **Deployed via GitHub Actions.**
 
 ---
 
 ## Step 8: Make a Change and Push
 
-Edit `index.html` — change the message to anything:
+Edit `index.html`: change the message to anything:
 
 ```html
-<p>Version 2 — updated automatically! 🚀</p>
+<p>Version 2: updated automatically! 🚀</p>
 ```
 
 Push:
@@ -223,7 +223,7 @@ git commit -m "Version 2"
 git push origin main
 ```
 
-Refresh the browser — your change is live within seconds.
+Refresh the browser: your change is live within seconds.
 
 ---
 

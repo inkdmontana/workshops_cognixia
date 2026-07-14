@@ -33,6 +33,10 @@ env:
   PROJECT_DIR: projects/03-url-bookmark-saver
   AWS_REGION: ${{ inputs.aws_region || 'us-east-1' }}
   STUDENT_NAME: ${{ inputs.student_name }}
+  # Neither of these affects what gets destroyed — Terraform just needs some
+  # value for every variable that has no default in order to evaluate the plan.
+  CREATED_DATE: '01-Jan-2000'
+  LAMBDA_ROLE_ARN: 'arn:aws:iam::000000000000:role/placeholder'
 
 # ── Stage 1: Preflight ────────────────────────────────────────────────────────
 jobs:
@@ -169,7 +173,9 @@ jobs:
           terraform refresh \
             -input=false \
             -var="student_name=${STUDENT_NAME}" \
-            -var="aws_region=${AWS_REGION}" 2>/dev/null || true
+            -var="aws_region=${AWS_REGION}" \
+            -var="created_date=${CREATED_DATE}" \
+            -var="lambda_role_arn=${LAMBDA_ROLE_ARN}" 2>/dev/null || true
 
           BUCKET=$(terraform output -raw frontend_bucket 2>/dev/null || echo "")
           if [ -n "$BUCKET" ]; then
@@ -186,7 +192,9 @@ jobs:
             -auto-approve \
             -input=false \
             -var="student_name=${STUDENT_NAME}" \
-            -var="aws_region=${AWS_REGION}"
+            -var="aws_region=${AWS_REGION}" \
+            -var="created_date=${CREATED_DATE}" \
+            -var="lambda_role_arn=${LAMBDA_ROLE_ARN}"
 
       - name: Publish destroy summary
         if: always()

@@ -1,4 +1,4 @@
-# Lab 7 — CloudWatch Alerts and Consolidated Dashboard
+# Lab 7: CloudWatch Alerts and Consolidated Dashboard
 
 Two parts: a student exercise on alarms + SNS notifications, and an
 instructor-only Terraform template that pre-builds a consolidated dashboard
@@ -8,7 +8,7 @@ for demo purposes.
 
 | File | Purpose |
 |---|---|
-| [student-lab-7-cloudwatch.md](student-lab-7-cloudwatch.md) | Student lab — billing alarm + EC2 CPU alarm, both wired to SNS email notifications. Points to official AWS step-by-step guides. |
+| [student-lab-7-cloudwatch.md](student-lab-7-cloudwatch.md) | Student lab: billing alarm + EC2 CPU alarm, both wired to SNS email notifications. Points to official AWS step-by-step guides. |
 
 ## What students will learn
 

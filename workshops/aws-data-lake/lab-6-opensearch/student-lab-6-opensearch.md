@@ -1,7 +1,7 @@
-# OpenSearch Lab — Student Handout
+# OpenSearch Lab: Student Handout
 
 In this lab you'll search and analyze an e-commerce product catalog using
-Amazon OpenSearch. You'll run everything in the browser using Dev Tools — no
+Amazon OpenSearch. You'll run everything in the browser using Dev Tools: no
 installs, no command line.
 
 Your instructor will give you:
@@ -15,7 +15,7 @@ sample e-commerce data into it. All exercises then run against your index,
 keeping your work isolated from other students on the shared domain.
 
 
-## SETUP — Create your personal index
+## SETUP: Create your personal index
 
 Before running any exercises, you will create your own copy of the product
 catalog. This keeps everyone's data separate on the shared domain.
@@ -25,7 +25,7 @@ catalog. This keeps everyone's data separate on the shared domain.
 
 ---
 
-### Step 1 — Create the index with field mappings
+### Step 1: Create the index with field mappings
 
 In Dev Tools, paste and run this. It defines the schema for your index.
 
@@ -49,15 +49,15 @@ PUT /products_studentNN
 You should see `"acknowledged": true` in the response panel.
 
 Note the two field types:
-- `text` — full-text searchable (name, description)
-- `keyword` — exact-match and aggregatable (category, brand)
+- `text`: full-text searchable (name, description)
+- `keyword`: exact-match and aggregatable (category, brand)
 
 ---
 
-### Step 2 — Bulk load 20 products
+### Step 2: Bulk load 20 products
 
 Paste the entire block below as-is. The `_bulk` API requires every action line
-to be immediately followed by its document line — do not add blank lines between
+to be immediately followed by its document line: do not add blank lines between
 them. Run it all in one shot.
 
 ```
@@ -105,17 +105,17 @@ POST /products_studentNN/_bulk
 ```
 
 The response will list each document's result. Look for `"result": "created"` on
-every item — no `"errors": true` at the top level means the load succeeded.
+every item: no `"errors": true` at the top level means the load succeeded.
 
 ---
 
-### Step 3 — Verify your index
+### Step 3: Verify your index
 
 ```
 GET /products_studentNN/_count
 ```
 
-Expect `"count": 20`. If the number is lower, some documents failed — re-run
+Expect `"count": 20`. If the number is lower, some documents failed: re-run
 the bulk block (it is idempotent; the `_id` values prevent duplicates).
 
 > **From here on, use `/products_studentNN` in every query.** The shared
@@ -133,7 +133,7 @@ the bulk block (it is idempotent; the `_id` values prevent duplicates).
    - Left side = your query. Click the green ▶ (play) arrow to run it.
    - Right side = the result.
 
-Quick orientation — confirm your index loaded correctly:
+Quick orientation: confirm your index loaded correctly:
 
     GET /products_studentNN/_count
 
@@ -149,9 +149,9 @@ See what a product looks like:
 Note the structure: each product has name, description, category, brand, price,
 rating, in_stock.
 
-## PART A — FULL-TEXT SEARCH
+## PART A: FULL-TEXT SEARCH
 
-A1. Simple match — find products mentioning "running":
+A1. Simple match: find products mentioning "running":
 
     GET /products_studentNN/_search
     {
@@ -160,9 +160,9 @@ A1. Simple match — find products mentioning "running":
       }
     }
 
-Look at the _score field — OpenSearch ranks results by relevance.
+Look at the _score field: OpenSearch ranks results by relevance.
 
-A2. Match across multiple fields — search "waterproof" in name OR description:
+A2. Match across multiple fields: search "waterproof" in name OR description:
 
     GET /products_studentNN/_search
     {
@@ -174,7 +174,7 @@ A2. Match across multiple fields — search "waterproof" in name OR description:
       }
     }
 
-A3. Fuzzy search — notice OpenSearch tolerates a typo ("hikng" -> "hiking"):
+A3. Fuzzy search: notice OpenSearch tolerates a typo ("hikng" -> "hiking"):
 
     GET /products_studentNN/_search
     {
@@ -188,9 +188,9 @@ A3. Fuzzy search — notice OpenSearch tolerates a typo ("hikng" -> "hiking"):
 YOUR TURN (A): Write a query that finds products mentioning "lightweight".
 How many match?
 
-## PART B — STRUCTURED / FILTER QUERIES
+## PART B: STRUCTURED / FILTER QUERIES
 
-B1. Exact filter — only the "gear" category (note: category is a keyword field,
+B1. Exact filter: only the "gear" category (note: category is a keyword field,
 so this is an exact match, not full-text):
 
     GET /products_studentNN/_search
@@ -200,7 +200,7 @@ so this is an exact match, not full-text):
       }
     }
 
-B2. Range — products priced under 50:
+B2. Range: products priced under 50:
 
     GET /products_studentNN/_search
     {
@@ -209,7 +209,7 @@ B2. Range — products priced under 50:
       }
     }
 
-B3. Combine conditions with bool — Summit brand AND in stock AND rating >= 4.5:
+B3. Combine conditions with bool: Summit brand AND in stock AND rating >= 4.5:
 
     GET /products_studentNN/_search
     {
@@ -227,9 +227,9 @@ B3. Combine conditions with bool — Summit brand AND in stock AND rating >= 4.5
 YOUR TURN (B): Write a query for apparel products priced between 40 and 80.
 (Hint: bool with a term on category and a range on price with gte/lte.)
 
-## PART C — AGGREGATIONS (ANALYTICS)
+## PART C: AGGREGATIONS (ANALYTICS)
 
-Aggregations turn search into analytics — like GROUP BY in SQL.
+Aggregations turn search into analytics: like GROUP BY in SQL.
 
 C1. Count products per category:
 
@@ -278,9 +278,9 @@ You'll get min, max, avg, sum, count in one shot.
 YOUR TURN (C): Find the average RATING per category. Which category has the
 highest average rating?
 
-## PART D — PROVE YOUR ACCESS IS READ-ONLY
+## PART D: PROVE YOUR ACCESS IS READ-ONLY
 
-Your role can read but not write. Confirm it — this SHOULD fail:
+Your role can read but not write. Confirm it: this SHOULD fail:
 
     POST /products_studentNN/_doc
     {
@@ -289,7 +289,7 @@ Your role can read but not write. Confirm it — this SHOULD fail:
       "price": 9.99
     }
 
-You should get a 403 / security_exception. That's correct — your read-only
+You should get a 403 / security_exception. That's correct: your read-only
 role blocks writes. This is fine-grained access control (FGAC) in action.
 
 Try to delete the index (also SHOULD fail):
@@ -298,7 +298,7 @@ Try to delete the index (also SHOULD fail):
 
 Another 403. Your access is safely limited to reading.
 
-## BONUS — combine search + aggregation
+## BONUS: combine search + aggregation
 
 Among "gear" products only, what's the average price?
 
@@ -321,5 +321,5 @@ The query filters first, then the aggregation runs on just those results.
   are exact-match and aggregatable
 - Aggregations: terms (group by), avg/stats (metrics), nested aggs
 - Fine-grained access control: your read-only role lets you search but not
-  modify — enforced per user
+  modify: enforced per user
 

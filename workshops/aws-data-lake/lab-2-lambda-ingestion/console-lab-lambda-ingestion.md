@@ -1,4 +1,4 @@
-# AWS Lambda — Event-Driven Ingestion Lab
+# AWS Lambda: Event-Driven Ingestion Lab
 
 Builds on the same sandbox as the data-lake lab (same IAM user, same region lock to `us-west-2`, same `quicklabs-<USER>-…` naming convention). This add-on lab covers three ingestion patterns and when to pick each.
 
@@ -47,22 +47,22 @@ The Lambda execution role (`quicklabs-<USER>-lambda-role`) additionally has:
 
 Sample handler code is in this folder:
 
-- [`image_metadata_handler.py`](lambda-code/image_metadata_handler.py) — SQS-triggered, use case 1
-- [`batch_file_handler.py`](lambda-code/batch_file_handler.py) — S3-triggered, use case 2
-- [`csv_to_parquet_curated.py`](lambda-code/csv_to_parquet_curated.py) — Lambda-as-ETL, use case 3
+- [`image_metadata_handler.py`](lambda-code/image_metadata_handler.py): SQS-triggered, use case 1
+- [`batch_file_handler.py`](lambda-code/batch_file_handler.py): S3-triggered, use case 2
+- [`csv_to_parquet_curated.py`](lambda-code/csv_to_parquet_curated.py): Lambda-as-ETL, use case 3
 
 ---
 
-## Use case 1 — Field imagery: S3 → SQS → Lambda
+## Use case 1: Field imagery: S3 → SQS → Lambda
 
 **When this shape fits:** uploads are bursty and uneven (devices come online, dump a batch, drop off). SQS absorbs the spikes, decouples upload latency from processing latency, and gives you per-message retry + DLQ semantics for free.
 
-### Step 1 — Queues
+### Step 1: Queues
 
 Create two SQS queues, in this order:
 
-1. **DLQ first** — `quicklabs-<USER>-image-dlq`. Standard queue. Default settings.
-2. **Main queue** — `quicklabs-<USER>-image-events`. Standard queue.
+1. **DLQ first**: `quicklabs-<USER>-image-dlq`. Standard queue. Default settings.
+2. **Main queue**: `quicklabs-<USER>-image-events`. Standard queue.
    - Visibility timeout: **6× your Lambda timeout** (recommended). E.g. Lambda timeout = 30s → visibility timeout = 180s.
    - Dead-letter queue: select `quicklabs-<USER>-image-dlq`, `maxReceiveCount = 5`.
 
@@ -84,9 +84,9 @@ Then attach an **access policy** on the main queue that lets your raw S3 bucket 
 }
 ```
 
-> Both `aws:SourceArn` (which bucket) and `aws:SourceAccount` (which AWS account) are required by S3 — without them the bucket-notification config will fail validation.
+> Both `aws:SourceArn` (which bucket) and `aws:SourceAccount` (which AWS account) are required by S3: without them the bucket-notification config will fail validation.
 
-### Step 2 — S3 event notification
+### Step 2: S3 event notification
 
 S3 console → `quicklabs-<USER>-raw` → Properties → Event notifications → Create.
 
@@ -96,7 +96,7 @@ S3 console → `quicklabs-<USER>-raw` → Properties → Event notifications →
 - Events: `s3:ObjectCreated:*`
 - Destination: **SQS queue** → `quicklabs-<USER>-image-events`
 
-### Step 3 — Lambda function
+### Step 3: Lambda function
 
 Lambda console → Create function → Author from scratch.
 
@@ -107,7 +107,7 @@ Lambda console → Create function → Author from scratch.
 
 Then under **Code**:
 
-- Upload `image_metadata_handler.py` (paste contents into the inline editor — Lambda will name it `lambda_function.py`; rename the file or change the handler entry below).
+- Upload `image_metadata_handler.py` (paste contents into the inline editor: Lambda will name it `lambda_function.py`; rename the file or change the handler entry below).
 - Handler: `image_metadata_handler.handler`
 
 Under **Configuration**:
@@ -124,7 +124,7 @@ Under **Triggers** → Add trigger → SQS:
 - Batch window: `5 seconds`
 - **Report batch item failures**: ✅ (this is what makes the `batchItemFailures` return value in the handler actually take effect)
 
-### Step 4 — Smoke test
+### Step 4: Smoke test
 
 ```bash
 USER=alice  # <-- replace
@@ -140,7 +140,7 @@ Within ~5–10s:
 - CloudWatch Logs → `/aws/lambda/quicklabs-<USER>-image-metadata` shows a `wrote metadata bucket=…` line.
 - `aws s3 ls s3://quicklabs-${USER}-curated/image-metadata/images/` shows `tank-1.jpg.json`.
 
-### Step 5 — Force a failure (verify DLQ wiring)
+### Step 5: Force a failure (verify DLQ wiring)
 
 Delete the curated bucket's bucket policy or temporarily set `CURATED_BUCKET` to a bucket the Lambda can't write to. Re-upload an image. Watch:
 
@@ -149,11 +149,11 @@ Delete the curated bucket's bucket policy or temporarily set `CURATED_BUCKET` to
 
 ---
 
-## Use case 2 — Batch drops: S3 → Lambda direct
+## Use case 2: Batch drops: S3 → Lambda direct
 
-**When this shape fits:** a known producer (cron job, partner SFTP sync) writes files at a predictable, modest rate. SQS would add a hop with no payoff — Lambda's async invocation already gives you retries and an optional DLQ.
+**When this shape fits:** a known producer (cron job, partner SFTP sync) writes files at a predictable, modest rate. SQS would add a hop with no payoff: Lambda's async invocation already gives you retries and an optional DLQ.
 
-### Step 1 — Lambda function
+### Step 1: Lambda function
 
 Same as above but:
 
@@ -166,7 +166,7 @@ Same as above but:
   - `ALLOWED_SUFFIXES = .csv,.json,.parquet`
 
 
-### Step 2 — Trigger from S3
+### Step 2: Trigger from S3
 
 Function → Configuration → Triggers → Add trigger → S3:
 
@@ -176,7 +176,7 @@ Function → Configuration → Triggers → Add trigger → S3:
 - Suffix: blank
 - ✅ acknowledge the recursive-invocation warning (you're not writing back to the same bucket)
 
-### Step 3 — Smoke test
+### Step 3: Smoke test
 
 ```bash
 USER=alice

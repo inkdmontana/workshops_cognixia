@@ -1,4 +1,4 @@
-## MongoDB Community Server — Quick Start (Windows / macOS / Linux)
+## MongoDB Community Server: Quick Start (Windows / macOS / Linux)
 
 ---
 

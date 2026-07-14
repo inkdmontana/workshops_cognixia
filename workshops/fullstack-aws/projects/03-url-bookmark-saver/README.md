@@ -1,4 +1,4 @@
-# Stash — URL Bookmark Saver
+# Stash: URL Bookmark Saver
 
 A production-style full-stack SaaS app for saving and organising bookmarks.  
 Built with **Next.js + AWS Lambda + DynamoDB**, deployed via **Terraform**.
@@ -40,12 +40,12 @@ Built with **Next.js + AWS Lambda + DynamoDB**, deployed via **Terraform**.
 
 Run the backend locally with a simple dev server, then start the Next.js frontend.
 
-### 1. Start a local API (optional — if you want to test without AWS)
+### 1. Start a local API (optional: if you want to test without AWS)
 
 ```bash
 cd backend
 npm install
-# Quick local test server — not needed if testing against deployed API
+# Quick local test server: not needed if testing against deployed API
 node -e "
 const http = require('http');
 const bookmarks = [];
@@ -81,7 +81,7 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## Deployment (AWS)
 
-One command deploys everything end-to-end:
+One command deploys everything end-to-end. It will prompt for your name, today's date (for the `date` tag), and the shared Lambda execution role ARN (get this from your instructor: you don't create your own IAM role):
 
 ```bash
 bash scripts/deploy.sh
@@ -90,7 +90,9 @@ bash scripts/deploy.sh
 Or with environment variables (skips interactive prompts):
 
 ```bash
-STUDENT_NAME=john-smith AWS_REGION=us-east-1 bash scripts/deploy.sh
+STUDENT_NAME=john-smith AWS_REGION=us-east-1 CREATED_DATE=12-Jul-2026 \
+  LAMBDA_ROLE_ARN=arn:aws:iam::123456789012:role/quicklabs-batch-a-lambda-exec \
+  bash scripts/deploy.sh
 ```
 
 ### What deploy.sh does
@@ -99,7 +101,7 @@ STUDENT_NAME=john-smith AWS_REGION=us-east-1 bash scripts/deploy.sh
 |------|--------|
 | 1 | Checks prerequisites (aws, terraform, node, npm, zip) |
 | 2 | Runs `npm ci --production` in backend, creates `lambda.zip` |
-| 3 | `terraform init && terraform apply` — provisions all AWS resources |
+| 3 | `terraform init && terraform apply`: provisions all AWS resources |
 | 4 | Reads API URL from Terraform outputs |
 | 5 | `npm run build` in frontend with `NEXT_PUBLIC_API_URL` injected |
 | 6 | `aws s3 sync` uploads static site to S3 |
@@ -203,13 +205,13 @@ This script creates sample bookmarks, performs reads, deletes a couple of record
 03-url-bookmark-saver/
 ├── backend/
 │   ├── src/
-│   │   └── handler.js        # Lambda handler — all API routes
+│   │   └── handler.js        # Lambda handler: all API routes
 │   └── package.json
 ├── frontend/
 │   ├── app/
 │   │   ├── globals.css       # Tailwind + custom component classes
 │   │   ├── layout.tsx        # HTML shell
-│   │   └── page.tsx          # Main page — state + grid
+│   │   └── page.tsx          # Main page: state + grid
 │   ├── components/
 │   │   ├── Header.tsx        # Top nav with Add button + count
 │   │   ├── BookmarkCard.tsx  # Card with favicon, open, delete
@@ -324,9 +326,9 @@ aws logs tail /aws/lambda/student-<name>-api --follow --region us-east-1
 | Problem | Fix |
 |---------|-----|
 | `AccessDeniedException` during deploy | Attach IAM policies for Lambda, API GW, DynamoDB, S3, IAM, CloudWatch |
-| `BucketAlreadyExists` | S3 bucket names are global — try a different `--name` |
+| `BucketAlreadyExists` | S3 bucket names are global: try a different `--name` |
 | Frontend shows "Failed to load bookmarks" | Check `NEXT_PUBLIC_API_URL` was set correctly at build time; redeploy frontend |
-| API returns 403 | Lambda permission for API Gateway may be missing — run `terraform apply` again |
+| API returns 403 | Lambda permission for API Gateway may be missing: run `terraform apply` again |
 | `lambda.zip not found` | Run `npm ci --production` in `backend/` then `zip -r lambda.zip src/ node_modules/` |
 | Terraform state locked | `terraform force-unlock <lock-id>` |
 | S3 bucket not empty on destroy | Script handles this automatically; if it fails, run `aws s3 rm s3://<bucket>/ --recursive` |

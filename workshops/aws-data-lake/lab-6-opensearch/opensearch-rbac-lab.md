@@ -1,4 +1,4 @@
-# OpenSearch RBAC Lab — Index-Level Access Control
+# OpenSearch RBAC Lab: Index-Level Access Control
 
 In this lab you will build a realistic fine-grained access control model for an
 e-commerce platform. Three departments need access to the same OpenSearch domain
@@ -15,25 +15,25 @@ The platform has three indices and three teams:
 
 | Index | Contents | Who needs access |
 |---|---|---|
-| `store_products` | Product catalog — 20 items | Everyone (read) |
-| `store_orders` | Customer orders — 10 records | Order management only |
-| `store_inventory` | Stock levels — 20 records | Inventory team (read + write) |
+| `store_products` | Product catalog: 20 items | Everyone (read) |
+| `store_orders` | Customer orders: 10 records | Order management only |
+| `store_inventory` | Stock levels: 20 records | Inventory team (read + write) |
 
 **The three personas:**
 
 | User | Role | Can read | Can write | Cannot touch |
 |---|---|---|---|---|
-| `catalog_user` | `catalog_reader_role` | `store_products` (in-stock only) | — | `store_orders`, `store_inventory`, price field hidden |
-| `order_user` | `order_analyst_role` | `store_products`, `store_orders` | — | `store_inventory` |
+| `catalog_user` | `catalog_reader_role` | `store_products` (in-stock only) |: | `store_orders`, `store_inventory`, price field hidden |
+| `order_user` | `order_analyst_role` | `store_products`, `store_orders` |: | `store_inventory` |
 | `inventory_user` | `inventory_manager_role` | `store_products`, `store_inventory` | `store_inventory` | `store_orders` |
 
 ---
 
-## PART 1 — Create the indices and load data
+## PART 1: Create the indices and load data
 
 Run all commands in Dev Tools as your admin user.
 
-### 1A — store_products index
+### 1A: store_products index
 
 ```
 PUT /store_products
@@ -100,7 +100,7 @@ Verify: `GET /store_products/_count` → expect 20.
 
 ---
 
-### 1B — store_orders index
+### 1B: store_orders index
 
 ```
 PUT /store_orders
@@ -147,7 +147,7 @@ Verify: `GET /store_orders/_count` → expect 10.
 
 ---
 
-### 1C — store_inventory index
+### 1C: store_inventory index
 
 ```
 PUT /store_inventory
@@ -213,18 +213,18 @@ Verify: `GET /store_inventory/_count` → expect 20.
 
 ---
 
-## PART 2 — Create roles
+## PART 2: Create roles
 
 Each role uses OpenSearch's Security plugin. The key fields are:
 
-- `index_permissions[].index_patterns` — which indices this role can touch (wildcards supported)
-- `index_permissions[].allowed_actions` — what it can do (`read`, `write`, `crud`, `indices:data/read/*`)
-- `index_permissions[].dls` — document-level security (filter which docs are visible)
-- `index_permissions[].fls` — field-level security (hide or expose specific fields)
+- `index_permissions[].index_patterns`: which indices this role can touch (wildcards supported)
+- `index_permissions[].allowed_actions`: what it can do (`read`, `write`, `crud`, `indices:data/read/*`)
+- `index_permissions[].dls`: document-level security (filter which docs are visible)
+- `index_permissions[].fls`: field-level security (hide or expose specific fields)
 
 ---
 
-### Role 1 — catalog_reader_role
+### Role 1: catalog_reader_role
 
 Reads `store_products` only. Two restrictions:
 - **DLS**: only sees documents where `in_stock = true` (out-of-stock products are hidden)
@@ -251,7 +251,7 @@ PUT /_plugins/_security/api/roles/catalog_reader_role
 
 ---
 
-### Role 2 — order_analyst_role
+### Role 2: order_analyst_role
 
 Reads `store_products` and `store_orders`. No field or document restrictions.
 
@@ -280,7 +280,7 @@ PUT /_plugins/_security/api/roles/order_analyst_role
 
 ---
 
-### Role 3 — inventory_manager_role
+### Role 3: inventory_manager_role
 
 Reads `store_products`. Reads **and writes** `store_inventory` (can update stock levels).
 Cannot touch `store_orders`.
@@ -320,7 +320,7 @@ GET /_plugins/_security/api/roles/inventory_manager_role
 
 ---
 
-## PART 3 — Create users
+## PART 3: Create users
 
 ```
 PUT /_plugins/_security/api/internalusers/catalog_user
@@ -347,7 +347,7 @@ PUT /_plugins/_security/api/internalusers/inventory_user
 
 ---
 
-## PART 4 — Map users to roles
+## PART 4: Map users to roles
 
 ```
 PUT /_plugins/_security/api/rolesmapping/catalog_reader_role
@@ -376,18 +376,18 @@ GET /_plugins/_security/api/rolesmapping/inventory_manager_role
 
 ---
 
-## PART 5 — Test each scenario
+## PART 5: Test each scenario
 
 Open a new **incognito browser window** for each user so you can test without
 logging out of your admin session.
 
 ---
 
-### Scenario A — catalog_user
+### Scenario A: catalog_user
 
 Log in as `catalog_user` / `Catalog-Pass-1!` and open Dev Tools.
 
-**A1. Read products — should work, but only in-stock items**
+**A1. Read products: should work, but only in-stock items**
 
 ```
 GET /store_products/_search
@@ -397,16 +397,16 @@ GET /store_products/_search
 }
 ```
 
-Count the hits — you should see **18 documents**, not 20. Products 6 (Fleece
+Count the hits: you should see **18 documents**, not 20. Products 6 (Fleece
 Pullover) and 14 (Sleeping Bag) are out of stock and are hidden by DLS.
 
 **A2. Confirm the price field is missing**
 
 Look at any document in the response. You will see `name`, `description`,
-`category`, `brand`, `rating`, `in_stock` — but **no `price` field**. FLS
+`category`, `brand`, `rating`, `in_stock`: but **no `price` field**. FLS
 removed it before the document reached your session.
 
-**A3. Try to read orders — should fail**
+**A3. Try to read orders: should fail**
 
 ```
 GET /store_orders/_search
@@ -418,7 +418,7 @@ GET /store_orders/_search
 Expected: `403 security_exception`. `catalog_reader_role` has no permission on
 `store_orders`.
 
-**A4. Try to read inventory — should fail**
+**A4. Try to read inventory: should fail**
 
 ```
 GET /store_inventory/_search
@@ -429,7 +429,7 @@ GET /store_inventory/_search
 
 Expected: `403 security_exception`.
 
-**A5. Try to write to products — should fail**
+**A5. Try to write to products: should fail**
 
 ```
 POST /store_products/_doc
@@ -445,11 +445,11 @@ Expected: `403 security_exception`. The role only has `read`, not `write`.
 
 ---
 
-### Scenario B — order_user
+### Scenario B: order_user
 
 Log in as `order_user` / `Order-Pass-1!` and open Dev Tools.
 
-**B1. Read orders — should work**
+**B1. Read orders: should work**
 
 ```
 GET /store_orders/_search
@@ -476,7 +476,7 @@ GET /store_orders/_search
 
 You can see how many orders are in each status.
 
-**B3. Read products — should work, and price IS visible**
+**B3. Read products: should work, and price IS visible**
 
 ```
 GET /store_products/_search
@@ -489,7 +489,7 @@ GET /store_products/_search
 All 20 products visible, including out-of-stock ones, and the `price` field is
 present. `order_analyst_role` has no DLS or FLS restrictions.
 
-**B4. Try to read inventory — should fail**
+**B4. Try to read inventory: should fail**
 
 ```
 GET /store_inventory/_search
@@ -500,7 +500,7 @@ GET /store_inventory/_search
 
 Expected: `403 security_exception`.
 
-**B5. Try to update an order — should fail**
+**B5. Try to update an order: should fail**
 
 ```
 POST /store_orders/_update/ORD-001
@@ -513,11 +513,11 @@ Expected: `403 security_exception`. Role is read-only.
 
 ---
 
-### Scenario C — inventory_user
+### Scenario C: inventory_user
 
 Log in as `inventory_user` / `Inventory-Pass-1!` and open Dev Tools.
 
-**C1. Read inventory — should work**
+**C1. Read inventory: should work**
 
 ```
 GET /store_inventory/_search
@@ -543,7 +543,7 @@ GET /store_inventory/_search
 
 These products need to be restocked.
 
-**C3. Update a stock level — should work**
+**C3. Update a stock level: should work**
 
 The inventory team received a shipment. Update product 6 (Fleece Pullover)
 from 0 to 50 units:
@@ -580,7 +580,7 @@ POST /store_inventory/_doc/21
 
 Expected: `201 created`.
 
-**C5. Try to delete the inventory index — should fail**
+**C5. Try to delete the inventory index: should fail**
 
 ```
 DELETE /store_inventory
@@ -589,7 +589,7 @@ DELETE /store_inventory
 Expected: `403 security_exception`. `crud` allows document-level writes but
 NOT index admin actions like dropping the index.
 
-**C6. Try to read orders — should fail**
+**C6. Try to read orders: should fail**
 
 ```
 GET /store_orders/_search
@@ -602,7 +602,7 @@ Expected: `403 security_exception`.
 
 ---
 
-## PART 6 — Cross-scenario comparison
+## PART 6: Cross-scenario comparison
 
 Back in your **admin session**, run the same query as three different users would
 and compare the results.
@@ -633,7 +633,7 @@ GET /store_products/_search
 }
 ```
 
-18 documents, no price — this is the catalog_user's world.
+18 documents, no price: this is the catalog_user's world.
 
 **Document that shows the difference:**
 
@@ -642,11 +642,11 @@ GET /store_products/_doc/6
 ```
 
 Admin sees `"in_stock": false` and `"price": 54.99`.
-`catalog_user` gets a `404` for this document — DLS hides it entirely.
+`catalog_user` gets a `404` for this document: DLS hides it entirely.
 
 ---
 
-## PART 7 — Inspect a role's effective permissions
+## PART 7: Inspect a role's effective permissions
 
 OpenSearch lets you check what a user is allowed to do without logging in as them.
 
@@ -656,10 +656,10 @@ GET /_plugins/_security/api/roles/catalog_reader_role
 
 Read the response carefully:
 
-- `index_patterns` — which indices the role matches
-- `allowed_actions` — what operations are permitted
-- `dls` — the filter query that limits visible documents
-- `fls` — fields excluded from responses (prefixed with `~`)
+- `index_patterns`: which indices the role matches
+- `allowed_actions`: what operations are permitted
+- `dls`: the filter query that limits visible documents
+- `fls`: fields excluded from responses (prefixed with `~`)
 
 Compare with `order_analyst_role`:
 
@@ -667,7 +667,7 @@ Compare with `order_analyst_role`:
 GET /_plugins/_security/api/roles/order_analyst_role
 ```
 
-Notice: no `dls`, no `fls` — the role sees everything it has index access to.
+Notice: no `dls`, no `fls`: the role sees everything it has index access to.
 
 ---
 
@@ -675,8 +675,8 @@ Notice: no `dls`, no `fls` — the role sees everything it has index access to.
 
 | What you see | What to do |
 |---|---|
-| `403` on a call that should work | Confirm the role mapping includes your user — re-run the `PUT /_plugins/_security/api/rolesmapping/...` call |
-| DLS not filtering — out-of-stock products still visible | Re-check the `dls` JSON string is valid — it must be a JSON string inside the role, not a nested object |
+| `403` on a call that should work | Confirm the role mapping includes your user: re-run the `PUT /_plugins/_security/api/rolesmapping/...` call |
+| DLS not filtering: out-of-stock products still visible | Re-check the `dls` JSON string is valid: it must be a JSON string inside the role, not a nested object |
 | `price` field still showing for catalog_user | Confirm `fls` is `["~price"]` (tilde = exclude). Without tilde it means include-only |
 | `inventory_user` cannot update documents | Confirm `allowed_actions` includes `crud`, not just `read` |
 | User login fails | Re-run the `PUT /_plugins/_security/api/internalusers/...` command and verify the response shows `status: CREATED` |

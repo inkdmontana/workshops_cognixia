@@ -180,22 +180,22 @@ test_main.py
 
 ## Example: Duplicate Email Check
 
-### Step 1 — Write Test
+### Step 1: Write Test
 
 ```python
 def test_create_employee_duplicate_email():
     ...
 ```
 
-### Step 2 — Run Test
+### Step 2: Run Test
 
 * test fails
 
-### Step 3 — Add Logic
+### Step 3: Add Logic
 
 * check whether email already exists
 
-### Step 4 — Run Test Again
+### Step 4: Run Test Again
 
 * test passes
 

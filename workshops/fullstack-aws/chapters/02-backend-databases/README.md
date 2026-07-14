@@ -1,4 +1,4 @@
-# Chapter 2 — Backend & Databases
+# Chapter 2: Backend & Databases
 
 Extend the app built in Chapter 1 into a real employee management system backed by MongoDB.
 

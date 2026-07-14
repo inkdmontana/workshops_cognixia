@@ -27,6 +27,14 @@ on:
         description: 'AWS region to deploy into'
         required: false
         default: 'us-east-1'
+      created_date:
+        description: 'Date for the `date` tag, format dd-mmm-yyyy (e.g. 12-Jul-2026)'
+        required: false
+        default: ''
+      lambda_role_arn:
+        description: 'ARN of the shared Lambda execution role pre-created for the cohort'
+        required: false
+        default: ''
       aws_access_key_id:
         description: 'AWS Access Key ID — leave blank to use repo secret AWS_ACCESS_KEY_ID'
         required: false
@@ -48,6 +56,8 @@ env:
   PROJECT_DIR: projects/03-url-bookmark-saver
   AWS_REGION: ${{ inputs.aws_region || vars.URL_BOOKMARK_SAVER_AWS_REGION || 'us-east-1' }}
   STUDENT_NAME: ${{ inputs.student_name || vars.URL_BOOKMARK_SAVER_STUDENT_NAME }}
+  CREATED_DATE: ${{ inputs.created_date || vars.URL_BOOKMARK_SAVER_CREATED_DATE }}
+  LAMBDA_ROLE_ARN: ${{ inputs.lambda_role_arn || vars.URL_BOOKMARK_SAVER_LAMBDA_ROLE_ARN }}
 
 # ── Stage 1: Lint ─────────────────────────────────────────────────────────────
 jobs:
@@ -233,6 +243,14 @@ jobs:
             echo "::error::Provide student_name as a workflow input or set repo variable URL_BOOKMARK_SAVER_STUDENT_NAME."
             exit 1
           fi
+          if [ -z "${CREATED_DATE}" ]; then
+            echo "::error::Provide created_date as a workflow input or set repo variable URL_BOOKMARK_SAVER_CREATED_DATE (format dd-mmm-yyyy)."
+            exit 1
+          fi
+          if [ -z "${LAMBDA_ROLE_ARN}" ]; then
+            echo "::error::Provide lambda_role_arn as a workflow input or set repo variable URL_BOOKMARK_SAVER_LAMBDA_ROLE_ARN."
+            exit 1
+          fi
           aws sts get-caller-identity
 
       - name: Deploy application
@@ -240,7 +258,7 @@ jobs:
         env:
           CI: true
           SEED_DEMO_DATA: 'false'   # seeding is handled by the dedicated seed stage
-        run: bash scripts/deploy.sh --name "$STUDENT_NAME" --region "$AWS_REGION"
+        run: bash scripts/deploy.sh --name "$STUDENT_NAME" --region "$AWS_REGION" --date "$CREATED_DATE" --lambda-role-arn "$LAMBDA_ROLE_ARN"
 
       - name: Capture Terraform outputs
         id: capture_outputs

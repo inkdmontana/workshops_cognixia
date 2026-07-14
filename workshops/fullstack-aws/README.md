@@ -71,17 +71,19 @@ Start at [Chapter 01](./chapters/01-vibe-coding/).
 
 ---
 
-## Resource Naming (required, read before you start)
+## Resource Naming (recommended, not IAM-enforced)
 
-Every AWS resource you create must start with:
+Prefix every resource with:
 
 ```
 student-<your-slug>-
 ```
 
-Your slug is assigned by the cohort admin (e.g. `alice-johnson`). The IAM policy enforces this: resources outside your namespace will be denied.
+Your slug is assigned by the cohort admin (e.g. `alice-johnson`). This isn't blocked by IAM, it's just good hygiene so you and the instructor can tell resources apart in a shared account.
 
-Tag every resource:
+## Resource Tagging (required, read before you start)
+
+Tag every resource you create:
 
 | Key | Value |
 |---|---|
@@ -89,7 +91,7 @@ Tag every resource:
 | `autodelete` | `true` or `false` |
 | `date` | `dd-mmm-yyyy`, e.g. `12-Jul-2026` |
 
-`autodelete=true` means it's safe for the instructor's cleanup script to delete it at the end of the batch. Use `autodelete=false` only for something you were explicitly told to keep.
+**This is the part that's actually enforced.** A nightly script deletes anything without these tags, no warning. `autodelete=true` means it's also safe for the instructor's end-of-batch cleanup to remove it. Use `autodelete=false` only for something you were explicitly told to keep.
 
 Terraform projects handle this automatically when you pass `student_name=<slug>` and `created_date=<dd-mmm-yyyy>`.
 

@@ -17,3 +17,8 @@ output "credentials_csv_path" {
   description = "Where the welcome-email-ready CSV was written."
   value       = local_sensitive_file.credentials.filename
 }
+
+output "lambda_role_arn" {
+  description = "ARN of the shared Lambda execution role for this cohort. Give this to students for -var=lambda_role_arn=... in the Lambda project labs."
+  value       = aws_iam_role.lambda_shared.arn
+}

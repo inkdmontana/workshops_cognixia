@@ -115,35 +115,16 @@ resource "aws_s3_bucket_policy" "frontend" {
 }
 
 # ─────────────────────────────────────────────
-# IAM — Lambda Execution Role
-# ─────────────────────────────────────────────
-
-resource "aws_iam_role" "lambda" {
-  name = "student-${var.student_name}-${var.project_name}-lambda-role"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      Effect    = "Allow"
-      Principal = { Service = "lambda.amazonaws.com" }
-      Action    = "sts:AssumeRole"
-    }]
-  })
-}
-
-resource "aws_iam_role_policy_attachment" "lambda_basic" {
-  role       = aws_iam_role.lambda.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
-}
-
-# ─────────────────────────────────────────────
 # Lambda — Backend API
 # ─────────────────────────────────────────────
 # Run build.py before terraform apply to generate backend/lambda.zip
+#
+# Uses the shared Lambda execution role your instructor pre-created for the
+# cohort (no student-managed IAM). Pass its ARN with -var=lambda_role_arn=...
 
 resource "aws_lambda_function" "api" {
   function_name = "student-${var.student_name}-${var.project_name}-api"
-  role          = aws_iam_role.lambda.arn
+  role          = var.lambda_role_arn
   runtime       = "python3.12"
   handler       = "lambda_function.lambda_handler"
   filename      = "${path.module}/../backend/lambda.zip"

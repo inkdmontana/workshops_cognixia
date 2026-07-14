@@ -1,4 +1,4 @@
-# Task Tracker — Capstone Project
+# Task Tracker: Capstone Project
 
 A full-stack serverless task management app built with React, Python Lambda, MongoDB, and deployed on AWS.
 
@@ -51,7 +51,7 @@ The app is split into two independent flows:
 - Add a new task with title, description, and priority
 - Update task status with one click
 - Delete a task
-- Responsive — works on mobile and desktop
+- Responsive: works on mobile and desktop
 
 ---
 
@@ -89,11 +89,11 @@ task-tracker/
 - Python 3.12+
 - Terraform installed
 - AWS CLI configured (`aws configure`)
-- MongoDB running on EC2 (from Lab — Lambda MongoDB EC2)
+- MongoDB running on EC2 (from Lab: Lambda MongoDB EC2)
 
-### Step 1 — Build the Lambda package
+### Step 1: Build the Lambda package
 
-Run once before deploying. Works on Windows, Mac, and Linux — only requires Python.
+Run once before deploying. Works on Windows, Mac, and Linux: only requires Python.
 
 ```bash
 python build-lambda-pkg.py
@@ -101,7 +101,7 @@ python build-lambda-pkg.py
 
 This creates `backend/lambda.zip` with all dependencies bundled.
 
-### Step 2 — Deploy infrastructure
+### Step 2: Deploy infrastructure
 
 ```bash
 cd terraform
@@ -109,7 +109,9 @@ terraform init
 terraform apply
 ```
 
-Copy the outputs — you will need them in the next steps:
+Terraform will prompt for `student_name`, `mongo_host`, `created_date` (dd-mmm-yyyy, e.g. `12-Jul-2026`), and `lambda_role_arn`. Get `lambda_role_arn` from your instructor: it's the shared Lambda execution role for your cohort; you don't create your own IAM role.
+
+Copy the outputs: you will need them in the next steps:
 
 ```
 api_url                    = "https://abc123.execute-api.us-east-1.amazonaws.com"
@@ -118,7 +120,7 @@ s3_bucket                  = "student-john-smith-task-tracker-a1b2"
 cloudfront_distribution_id = "E2TEUK2S7IPHG"
 ```
 
-### Step 3 — Build and deploy frontend
+### Step 3: Build and deploy frontend
 
 The frontend must be built with the API URL so it knows where to send requests.
 
@@ -145,7 +147,7 @@ aws cloudfront create-invalidation --distribution-id <your-cloudfront_distributi
 
 Replace all `<your-...>` values with the outputs from Step 2.
 
-### Step 4 — Open the app
+### Step 4: Open the app
 
 1. Open the `cloudfront_url` from Terraform outputs in your browser
 2. Wait ~30 seconds for the CloudFront invalidation to complete

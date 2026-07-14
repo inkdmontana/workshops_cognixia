@@ -1,13 +1,13 @@
-# Lab 7 — CloudWatch: Alarm on Lambda Errors
+# Lab 7: CloudWatch: Alarm on Lambda Errors
 
 
-## Part A — Create the Lambda function
+## Part A: Create the Lambda function
 
 This is a simplified version of the Lab 2 ingestion function. It validates
-that an S3 event carries a `.csv` file — the same check your full pipeline
+that an S3 event carries a `.csv` file: the same check your full pipeline
 depends on.
 
-**Step 1 — Open Lambda and create the function**
+**Step 1: Open Lambda and create the function**
 
 1. Open the AWS Console → **Lambda → Functions → Create function**
 2. Choose **Author from scratch**
@@ -19,7 +19,7 @@ depends on.
    username, e.g. `quicklabs-bob-patel-lambda-role`)
 7. Click **Create function**
 
-**Step 2 — Paste the handler code**
+**Step 2: Paste the handler code**
 
 In the **Code** tab, click on `lambda_function.py` and replace all the
 contents with:
@@ -40,7 +40,7 @@ def lambda_handler(event, context):
 
 Click **Deploy**.
 
-**Step 3 — Run a first test invocation (required before creating the alarm)**
+**Step 3: Run a first test invocation (required before creating the alarm)**
 
 CloudWatch only shows the `AWS/Lambda` namespace in Browse after the function
 has published at least one metric. Invoke it once now so the namespace appears.
@@ -60,14 +60,14 @@ has published at least one metric. Invoke it once now so the namespace appears.
      ]
    }
    ```
-4. Click **Test** — you should see a green **Execution result: succeeded** banner
+4. Click **Test**: you should see a green **Execution result: succeeded** banner
 
 Wait about 1 minute, then continue to Part B. This invocation registers the
 function in CloudWatch and makes its metrics browsable.
 
 ---
 
-## Part B — Create an SNS topic (receives the alarm email)
+## Part B: Create an SNS topic (receives the alarm email)
 
 1. Open the AWS Console → **SNS → Topics → Create topic**
 2. Type: **Standard**
@@ -86,10 +86,10 @@ The alarm will not email you until it is confirmed.
 
 ---
 
-## Part C — Create the alarm
+## Part C: Create the alarm
 
 1. Open **CloudWatch → Alarms → Create alarm**
-2. When asked for alarm type, choose **Classic** (not PromQL — that is for
+2. When asked for alarm type, choose **Classic** (not PromQL: that is for
    Prometheus metrics, not AWS service metrics)
 3. Click **Select metric**
 4. In the search box type `quicklabs-studentNN-oil-ingest` (your function name from Part A)
@@ -105,7 +105,7 @@ Configure the condition:
 - Condition: **Greater than** `0`
 - Datapoints to alarm: **1 out of 1**
 
-> One error is enough — this function should never fail in normal operation.
+> One error is enough: this function should never fail in normal operation.
 
 Configure actions:
 - Alarm state trigger: **In alarm**
@@ -117,7 +117,7 @@ Click **Create alarm**.
 
 ---
 
-## Part D — Trigger an error and watch the alarm fire
+## Part D: Trigger an error and watch the alarm fire
 
 Now deliberately break the Lambda invocation so CloudWatch records an error.
 
@@ -137,9 +137,9 @@ banner in the console output.
 **Now watch CloudWatch:**
 1. Go back to **CloudWatch → Alarms**
 2. Find `lambda-ingestion-errors-studentNN`
-3. Refresh every 30 seconds — within 1–2 minutes it transitions:
+3. Refresh every 30 seconds: within 1–2 minutes it transitions:
    `OK → In alarm`
-4. Check your email — you should receive the SNS notification
+4. Check your email: you should receive the SNS notification
 
 **If the alarm does not move after 3 minutes:**
 - Re-run the Test step once more (metrics need at least one datapoint in the
@@ -148,7 +148,7 @@ banner in the console output.
 
 ---
 
-## Part E — Restore and verify recovery
+## Part E: Restore and verify recovery
 
 1. Edit the test event back to the valid S3 payload:
    ```json
@@ -163,14 +163,14 @@ banner in the console output.
      ]
    }
    ```
-2. Click **Test** — you should see a green **Execution result: succeeded**
+2. Click **Test**: you should see a green **Execution result: succeeded**
    banner. The function prints `would process oil data: s3://quicklabs-raw-data/oil/Crude_Oil_historical_data.csv`
    and returns `{"processed": 1}`.
 3. Go back to **CloudWatch → Alarms** and watch the alarm transition back to
    **OK** (may take 1–2 minutes)
 
 > **Why this matters:** An `OK → In alarm → OK` cycle confirms your entire
-> alerting chain works end-to-end — CloudWatch captured the metric, evaluated
+> alerting chain works end-to-end: CloudWatch captured the metric, evaluated
 > the threshold, SNS delivered the email, and the alarm self-cleared once
 > errors stopped.
 

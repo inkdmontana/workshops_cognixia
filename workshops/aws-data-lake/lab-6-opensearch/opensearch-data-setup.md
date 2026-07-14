@@ -1,4 +1,4 @@
-# OpenSearch Lab — Instructor Setup Guide
+# OpenSearch Lab: Instructor Setup Guide
 
 Do this BEFORE the bootcamp. The domain takes 15-30 min to create, so build it
 the day before. This guide gets you: one shared domain, sample e-commerce data
@@ -6,7 +6,7 @@ loaded, and student users mapped to full admin (all_access).
 
 Region assumed: us-west-2. Adjust as needed.
 
-## STEP 1 — Create the domain 
+## STEP 1: Create the domain 
 
 ```
 aws opensearch create-domain \
@@ -24,14 +24,14 @@ aws opensearch create-domain \
 ```
 
 
-## STEP 2 — Log in to Dashboards as admin
+## STEP 2: Log in to Dashboards as admin
 
 1. Open the Dashboards URL in a browser.
 2. Log in with admin / <master password>.
 3. If prompted about tenants, choose Global tenant.
 4. You'll use Dev Tools (left menu -> Dev Tools) to load data and create roles.
 
-## STEP 3 — Load sample e-commerce data
+## STEP 3: Load sample e-commerce data
 
 In Dev Tools, paste and run this. It creates a "products" index and bulk-loads
 20 products. (Run the whole block; the _bulk body must end with a newline.)
@@ -102,7 +102,7 @@ Verify:
 
 
 
-## STEP 4 — Create student users and map them to all_access (full admin)
+## STEP 4: Create student users and map them to all_access (full admin)
 
 Create one internal user per student. In Dev Tools (logged in as master admin),
 repeat for each NN:
@@ -122,7 +122,7 @@ Verify each one stuck:
 Then map ALL students to all_access in one shot. IMPORTANT: this call REPLACES
 the existing mapping, so list every student each time, and preserve the admin
 master user's access (admin already has it via master user, so you don't need
-to add admin here — but do NOT remove admin's own separate access).
+to add admin here: but do NOT remove admin's own separate access).
 
     PUT /_plugins/_security/api/rolesmapping/all_access
     {
@@ -136,7 +136,7 @@ Verify the mapping:
 
     GET /_plugins/_security/api/rolesmapping/all_access
 
-## STEP 6 — Smoke test as a student BEFORE the bootcamp
+## STEP 6: Smoke test as a student BEFORE the bootcamp
 
 1. Open an incognito browser window -> Dashboards URL (.../_dashboards/).
 2. Log in as student01 / its password.
@@ -149,7 +149,7 @@ Verify the mapping:
        POST /products/_delete_by_query
        {"query":{"match":{"name":"test"}}}  )
 5. Confirm they can reach Dashboards features: open Discover, Visualize, Dashboard
-   from the left menu — all should be accessible.
+   from the left menu: all should be accessible.
 
 If student01 can search AND can open the Dashboards build tools, you're ready.
 
@@ -159,7 +159,7 @@ If student01 can search AND can open the Dashboards build tools, you're ready.
 - Their username studentNN + password
 - The student lab handout (separate file)
 
-## TEARDOWN (after the bootcamp — stops billing)
+## TEARDOWN (after the bootcamp: stops billing)
 
     aws opensearch delete-domain --domain-name bootcamp-search --region us-west-2
 

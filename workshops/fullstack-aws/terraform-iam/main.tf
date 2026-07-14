@@ -5,9 +5,11 @@
 #   - console login (temporary password, must change on first login)
 #   - membership in the cohort group (which holds the sandbox managed policy)
 #
-# The sandbox policy is created ONCE per cohort and scoped per-user via the
-# `slug` principal tag — so the policy text contains ${aws:PrincipalTag/slug}
-# and IAM substitutes each user's slug at evaluation.
+# The sandbox policy is one simple region-locked, full-access-to-5-services
+# policy shared by every student in the cohort — no per-student resource-name
+# or tag scoping in IAM. This module also pre-creates ONE shared Lambda
+# execution role per cohort so students never need any IAM permissions of
+# their own; they just pass that one role's ARN into their lab Terraform.
 #
 # Multiple cohorts coexist via Terraform workspaces — one workspace per
 # cohort, each pointing at its own roster CSV:
@@ -82,29 +84,67 @@ resource "aws_iam_user_login_profile" "student" {
   # accordingly (the parent README's `students-credentials.csv` is gitignored).
 }
 
+# --- Shared Lambda execution role (one per cohort, not one per student) -----
+#
+# Students get ZERO IAM permissions of their own — no CreateRole, no
+# AttachRolePolicy, nothing. Every lab that deploys a Lambda (task-tracker,
+# url-bookmark-saver) passes THIS pre-created role's ARN in instead of
+# creating its own. Covers what both labs need: CloudWatch Logs (basic
+# execution) + DynamoDB (url-bookmark-saver's table). Safe to leave unused by
+# labs that don't need DynamoDB (task-tracker).
+
+resource "aws_iam_role" "lambda_shared" {
+  name = "${var.name_prefix}-${local.cohort}-lambda-exec"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect    = "Allow"
+      Principal = { Service = "lambda.amazonaws.com" }
+      Action    = "sts:AssumeRole"
+    }]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "lambda_shared_basic" {
+  role       = aws_iam_role.lambda_shared.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+}
+
+resource "aws_iam_role_policy" "lambda_shared_dynamodb" {
+  name = "${var.name_prefix}-${local.cohort}-lambda-dynamodb"
+  role = aws_iam_role.lambda_shared.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect   = "Allow"
+      Action   = "dynamodb:*"
+      Resource = "*"
+    }]
+  })
+}
+
 # --- Sandbox policy + group --------------------------------------------------
+#
+# Single, simple policy: region-locked to us-east-1, full access to Lambda,
+# EC2, S3, CloudWatch, CloudFront, and DynamoDB. No per-student resource-name
+# scoping — that used to be enforced via aws:PrincipalTag/slug ARN matching,
+# which was fragile and hard to debug. Namespacing is now a *tagging*
+# convention instead (see root README): every resource gets
+# `workshop`/`autodelete`/`date` tags, and the nightly cleanup script deletes
+# anything that isn't tagged, rather than IAM blocking creation of anything
+# mis-named. The one exception is `iam:PassRole`, narrowly scoped to just the
+# shared Lambda role above — that's the only IAM permission students get.
 
 resource "aws_iam_policy" "fullstack_sandbox" {
   name        = "${var.name_prefix}-${local.cohort}-sandbox"
-  description = "Region + namespace sandbox for ${local.cohort}. Per-user scope via aws:PrincipalTag/slug."
+  description = "Region-locked (us-east-1) full access to Lambda/EC2/S3/CloudWatch/CloudFront/DynamoDB for ${local.cohort}, plus PassRole on the shared Lambda role only."
 
-  policy = jsonencode(jsondecode(replace(
-    file("${path.module}/../student-user-policy.json"),
+  policy = replace(
+    file("${path.module}/../student-iam-policy.json"),
     "{ACCOUNT_ID}", data.aws_caller_identity.current.account_id
-  )))
-}
-
-# Bootcamp-specific extras (tagging, IAM read, API GW console, X-Ray, Logs
-# Insights). Split into a second managed policy so the core stays under the
-# 6144-char IAM managed-policy limit. Both attach to the same cohort group.
-resource "aws_iam_policy" "fullstack_extras" {
-  name        = "${var.name_prefix}-${local.cohort}-extras"
-  description = "Bootcamp console + tagging + tracing extras for ${local.cohort}."
-
-  policy = jsonencode(jsondecode(replace(
-    file("${path.module}/../student-extras-policy.json"),
-    "{ACCOUNT_ID}", data.aws_caller_identity.current.account_id
-  )))
+  )
 }
 
 resource "aws_iam_group" "fullstack_student" {
@@ -114,11 +154,6 @@ resource "aws_iam_group" "fullstack_student" {
 resource "aws_iam_group_policy_attachment" "fullstack_sandbox" {
   group      = aws_iam_group.fullstack_student.name
   policy_arn = aws_iam_policy.fullstack_sandbox.arn
-}
-
-resource "aws_iam_group_policy_attachment" "fullstack_extras" {
-  group      = aws_iam_group.fullstack_student.name
-  policy_arn = aws_iam_policy.fullstack_extras.arn
 }
 
 resource "aws_iam_user_group_membership" "student" {
@@ -138,7 +173,7 @@ resource "local_sensitive_file" "credentials" {
   file_permission = "0600"
 
   content = join("\n", concat(
-    ["username,full_name,console_url,console_password,region"],
+    ["username,full_name,console_url,console_password,region,lambda_role_arn"],
     [
       for u, s in local.students :
       join(",", [
@@ -147,6 +182,7 @@ resource "local_sensitive_file" "credentials" {
         "https://${data.aws_caller_identity.current.account_id}.signin.aws.amazon.com/console",
         aws_iam_user_login_profile.student[u].password,
         var.region,
+        aws_iam_role.lambda_shared.arn,
       ])
     ]
   ))

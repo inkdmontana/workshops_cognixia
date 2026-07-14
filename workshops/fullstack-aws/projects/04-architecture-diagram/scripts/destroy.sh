@@ -21,6 +21,9 @@ hr()   { echo -e "\n${BOLD}━━━━━━━━━━━━━━━━━�
 AWS_REGION="${AWS_REGION:-us-east-1}"
 STUDENT_NAME="${STUDENT_NAME:-}"
 CI_MODE="${CI:-false}"
+# Doesn't affect what gets destroyed — Terraform just needs some value for
+# every variable that has no default in order to evaluate the plan.
+CREATED_DATE="${CREATED_DATE:-01-Jan-2000}"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -66,7 +69,8 @@ log "Destroying AWS infrastructure..."
 terraform -chdir="$TF_DIR" destroy \
   -auto-approve -input=false \
   -var "student_name=$STUDENT_NAME" \
-  -var "aws_region=$AWS_REGION"
+  -var "aws_region=$AWS_REGION" \
+  -var "created_date=$CREATED_DATE"
 ok "All resources destroyed"
 
 # ── Cleanup local artifacts ───────────────────────────────────────────────────

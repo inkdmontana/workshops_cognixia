@@ -1,8 +1,8 @@
-# Student Lab 1 — Build an AWS Data Lake with S3, Glue & Athena
+# Student Lab 1: Build an AWS Data Lake with S3, Glue & Athena
 
-End-to-end student lab: create S3 buckets, catalog raw CSV with a Glue Crawler, run a PySpark ETL job that converts CSV to partitioned Parquet, catalog the output, and compare Athena query cost before and after — with a self-serve assignment at the end.
+End-to-end student lab: create S3 buckets, catalog raw CSV with a Glue Crawler, run a PySpark ETL job that converts CSV to partitioned Parquet, catalog the output, and compare Athena query cost before and after: with a self-serve assignment at the end.
 
-> Full web version with video: [beCloudReady — AWS Data Lake with Glue & Athena](https://www.becloudready.com/learn/aws-data-lake-glue-athena)
+> Full web version with video: [beCloudReady: AWS Data Lake with Glue & Athena](https://www.becloudready.com/learn/aws-data-lake-glue-athena)
 
 **Time:** ~90 minutes, including the assignment.
 
@@ -22,13 +22,13 @@ S3 (raw CSV) → Glue Crawler → Glue Data Catalog → Athena (SQL)
 
 | | Value |
 |---|---|
-| Glue service role | `quicklabs-<USER>-glue-role` (already exists — you'll select it, not create it) |
-| Athena workgroup | `quicklabs-<USER>-wg` (already exists — you'll switch to it, not create it) |
-| Dataset + script | `Crude_Oil_historical_data.csv` and `oil_csv_to_parquet.py`, sent to you separately — download both before Part 3 |
+| Glue service role | `quicklabs-<USER>-glue-role` (already exists: you'll select it, not create it) |
+| Athena workgroup | `quicklabs-<USER>-wg` (already exists: you'll switch to it, not create it) |
+| Dataset + script | `Crude_Oil_historical_data.csv` and `oil_csv_to_parquet.py`, sent to you separately: download both before Part 3 |
 
-Throughout this lab, `<USER>` means your **slug** — everything in your username **before** the `@`. If your login is `suresh-raina@quicklabs.internal`, your `<USER>` is `suresh-raina`.
+Throughout this lab, `<USER>` means your **slug**: everything in your username **before** the `@`. If your login is `suresh-raina@quicklabs.internal`, your `<USER>` is `suresh-raina`.
 
-> **Important:** Every resource you create must be named `quicklabs-<USER>-...` (or `quicklabs_<USER>_...` for Glue databases, which can't contain hyphens). Your IAM policy only allows actions on resources matching your own namespace — a typo in the slug will produce `not authorized to perform ... because no identity-based policy allows the action`.
+> **Important:** Every resource you create must be named `quicklabs-<USER>-...` (or `quicklabs_<USER>_...` for Glue databases, which can't contain hyphens). Your IAM policy only allows actions on resources matching your own namespace: a typo in the slug will produce `not authorized to perform ... because no identity-based policy allows the action`.
 
 ## Resources you'll create yourself
 
@@ -44,7 +44,7 @@ Throughout this lab, `<USER>` means your **slug** — everything in your usernam
 
 ---
 
-## Part 1 — Create your S3 buckets
+## Part 1: Create your S3 buckets
 
 You need three buckets: one for raw data, one for the transformed (curated) output, and one to hold the ETL script.
 
@@ -58,7 +58,7 @@ You need three buckets: one for raw data, one for the transformed (curated) outp
 
 ![Name the Bucket](https://pub-5c24f672454946bb951bf35f09c3964e.r2.dev/learn/aws-data-engineer/01-04-s3-bucket-name.png)
 
-Leave **Block all public access** checked and default encryption (SSE-S3) on — your policy requires this. Glue and Athena access the bucket through IAM, not public URLs. Keep versioning disabled — this lab doesn't use cross-region replication or S3 lifecycle features.
+Leave **Block all public access** checked and default encryption (SSE-S3) on: your policy requires this. Glue and Athena access the bucket through IAM, not public URLs. Keep versioning disabled: this lab doesn't use cross-region replication or S3 lifecycle features.
 
 ![Block Public Access](https://pub-5c24f672454946bb951bf35f09c3964e.r2.dev/learn/aws-data-engineer/01-05-s3-acl-policy.png)
 
@@ -72,11 +72,11 @@ Same steps, names `quicklabs-<USER>-curated` and `quicklabs-<USER>-scripts`.
 
 ![Three buckets listed in S3 console](https://pub-5c24f672454946bb951bf35f09c3964e.r2.dev/learn/aws-data-engineer/02-02-three-buckets-listed.png)
 
-> If bucket creation fails with `AccessDenied`, double-check the name starts with exactly `quicklabs-<USER>-` — typos here are the #1 source of denied errors in this lab.
+> If bucket creation fails with `AccessDenied`, double-check the name starts with exactly `quicklabs-<USER>-`: typos here are the #1 source of denied errors in this lab.
 
 ---
 
-## Part 2 — Upload your data and script
+## Part 2: Upload your data and script
 
 ### 2.1 Download the files
 
@@ -104,7 +104,7 @@ Confirm both objects landed:
 
 ---
 
-## Part 3 — Create your Glue database
+## Part 3: Create your Glue database
 
 **AWS Glue → Data Catalog → Databases → Add database.**
 
@@ -112,13 +112,13 @@ Confirm both objects landed:
 
 ![Select Glue Service](https://pub-5c24f672454946bb951bf35f09c3964e.r2.dev/learn/aws-data-engineer/04-01-aws-glue-service.png)
 
-- Name: `quicklabs_<USER>_lake` (underscores, not hyphens — Glue databases can't contain hyphens)
+- Name: `quicklabs_<USER>_lake` (underscores, not hyphens: Glue databases can't contain hyphens)
 - Location: leave blank
 - **Create database.**
 
 ![Creating a Glue database](https://pub-5c24f672454946bb951bf35f09c3964e.r2.dev/learn/aws-data-engineer/04-02-create-glue-database.png)
 
-> **Ask AI — what a Glue database actually is**
+> **Ask AI: what a Glue database actually is**
 > ```
 > In AWS Glue, what is a "database" really, given that it doesn't store any
 > rows itself? Explain how it relates to the Glue Data Catalog and to the
@@ -128,9 +128,9 @@ Confirm both objects landed:
 
 ---
 
-## Part 4 — Create and run the raw crawler
+## Part 4: Create and run the raw crawler
 
-A Glue Crawler scans a folder in S3, infers a schema, and registers a table in the Glue Data Catalog. The underlying file never moves — the crawler only writes metadata.
+A Glue Crawler scans a folder in S3, infers a schema, and registers a table in the Glue Data Catalog. The underlying file never moves: the crawler only writes metadata.
 
 ### 4.1 Create the crawler
 
@@ -161,11 +161,11 @@ Select your new crawler → **Run**. Watch the status: `Starting` → `Running` 
 
 ![New raw_oil table in catalog](https://pub-5c24f672454946bb951bf35f09c3964e.r2.dev/learn/aws-data-engineer/05-06-raw-oil-table.png)
 
-Click into `raw_oil` and check the schema — 8 columns: `date, open, high, low, close, volume, ticker, name`.
+Click into `raw_oil` and check the schema: 8 columns: `date, open, high, low, close, volume, ticker, name`.
 
 ![raw_oil table schema](https://pub-5c24f672454946bb951bf35f09c3964e.r2.dev/learn/aws-data-engineer/05-07-raw-oil-schema.png)
 
-> **Ask AI — what just happened**
+> **Ask AI: what just happened**
 > ```
 > I just ran an AWS Glue Crawler against a CSV file in S3 and it created a
 > table called raw_oil in the Glue Data Catalog with 8 inferred columns.
@@ -177,7 +177,7 @@ Click into `raw_oil` and check the schema — 8 columns: `date, open, high, low,
 
 ---
 
-## Part 5 — Query the raw table with Athena
+## Part 5: Query the raw table with Athena
 
 ### 5.1 Switch to your workgroup
 
@@ -203,11 +203,11 @@ SELECT * FROM raw_oil LIMIT 10;
 SELECT MIN(date), MAX(date) FROM raw_oil;
 ```
 
-Note the **"Data scanned"** stat under the results — that's what you pay for with Athena. Keep this number in mind; you'll compare it after the ETL step.
+Note the **"Data scanned"** stat under the results: that's what you pay for with Athena. Keep this number in mind; you'll compare it after the ETL step.
 
 ![Athena data scanned stat](https://pub-5c24f672454946bb951bf35f09c3964e.r2.dev/learn/aws-data-engineer/06-04-athena-data-scanned.png)
 
-> **Ask AI — Athena pricing model**
+> **Ask AI: Athena pricing model**
 > ```
 > Explain how Amazon Athena pricing works (pay-per-query, based on data
 > scanned). Why does file format (CSV vs Parquet) and partitioning affect
@@ -217,9 +217,9 @@ Note the **"Data scanned"** stat under the results — that's what you pay for w
 
 ---
 
-## Part 6 — Create and run the ETL job
+## Part 6: Create and run the ETL job
 
-CSV is fine for small, ad-hoc lookups, but slow and expensive to scan at scale because every query reads every byte of every row. The ETL job converts the same data into **Parquet** — a columnar, compressed format — and partitions it by year, so Athena can skip whole chunks of data it doesn't need.
+CSV is fine for small, ad-hoc lookups, but slow and expensive to scan at scale because every query reads every byte of every row. The ETL job converts the same data into **Parquet**: a columnar, compressed format: and partitions it by year, so Athena can skip whole chunks of data it doesn't need.
 
 ### 6.1 Create the job
 
@@ -255,7 +255,7 @@ Click **Run**. Switch to the **Runs** tab and watch the status. Cold start takes
 
 ![Glue ETL job runs tab - succeeded](https://pub-5c24f672454946bb951bf35f09c3964e.r2.dev/learn/aws-data-engineer/07-03-etl-job-succeeded.png)
 
-When it shows `Succeeded`, open the **Output logs** (CloudWatch link) — you'll see the script's print statements reporting rows in / rows out.
+When it shows `Succeeded`, open the **Output logs** (CloudWatch link): you'll see the script's print statements reporting rows in / rows out.
 
 ![CloudWatch logs for ETL job](https://pub-5c24f672454946bb951bf35f09c3964e.r2.dev/learn/aws-data-engineer/07-04-etl-job-logs.png)
 
@@ -265,7 +265,7 @@ When it shows `Succeeded`, open the **Output logs** (CloudWatch link) — you'll
 
 ![Curated bucket with year partitions](https://pub-5c24f672454946bb951bf35f09c3964e.r2.dev/learn/aws-data-engineer/07-05-curated-bucket-partitions.png)
 
-> **Ask AI — CSV vs Parquet**
+> **Ask AI: CSV vs Parquet**
 > ```
 > Explain the difference between row-based formats like CSV and columnar
 > formats like Parquet, specifically why columnar storage makes analytical
@@ -276,7 +276,7 @@ When it shows `Succeeded`, open the **Output logs** (CloudWatch link) — you'll
 
 ---
 
-## Part 7 — Create the curated crawler and compare
+## Part 7: Create the curated crawler and compare
 
 ### 7.1 Create and run a second crawler
 
@@ -313,7 +313,7 @@ GROUP BY year
 ORDER BY year;
 ```
 
-Expect 26 rows — one per year from 2000 to 2025.
+Expect 26 rows: one per year from 2000 to 2025.
 
 ![Athena query against curated_oil with per-year results](https://pub-5c24f672454946bb951bf35f09c3964e.r2.dev/learn/aws-data-engineer/08-03-curated-query-results.png)
 
@@ -323,7 +323,7 @@ Run the **same aggregation query** against `raw_oil` and compare the "Data scann
 
 The Parquet version scans roughly **10× less data** than the CSV version for the same answer. At terabyte scale, that gap is the difference between cents and real money.
 
-> **Ask AI — wrap-up**
+> **Ask AI: wrap-up**
 > ```
 > I just built a small AWS data lake from scratch through the console:
 > created S3 buckets, uploaded a raw CSV, cataloged it with a Glue Crawler,
@@ -338,9 +338,9 @@ The Parquet version scans roughly **10× less data** than the CSV version for th
 
 ---
 
-## Assignment — bring your own dataset
+## Assignment: bring your own dataset
 
-Pick any CSV dataset from [Kaggle](https://www.kaggle.com/datasets) — stocks, weather, sports, whatever interests you — and run it through the same pipeline yourself, without a guide. Keep it under 100 MB to stay fast.
+Pick any CSV dataset from [Kaggle](https://www.kaggle.com/datasets): stocks, weather, sports, whatever interests you: and run it through the same pipeline yourself, without a guide. Keep it under 100 MB to stay fast.
 
 ---
 

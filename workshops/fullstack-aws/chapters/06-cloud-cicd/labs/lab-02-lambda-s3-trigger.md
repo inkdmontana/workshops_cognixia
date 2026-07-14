@@ -1,9 +1,9 @@
-# Lab — Lambda S3 Trigger
+# Lab: Lambda S3 Trigger
 
 ## What You'll Build
 
 A Lambda function that automatically runs whenever a file is uploaded to an S3 bucket.
-It logs the bucket name and file name to CloudWatch — the foundation of event-driven serverless architecture.
+It logs the bucket name and file name to CloudWatch: the foundation of event-driven serverless architecture.
 
 ```
 Upload file → S3 Bucket → triggers → Lambda Function → logs to → CloudWatch
@@ -18,7 +18,7 @@ Upload file → S3 Bucket → triggers → Lambda Function → logs to → Cloud
 
 ---
 
-## Part 1 — Create the S3 Bucket
+## Part 1: Create the S3 Bucket
 
 1. Go to **S3** → **Create bucket**
 2. Set bucket name: `student-<your-name>-uploads` (e.g. `student-alice-uploads`)
@@ -28,7 +28,7 @@ Upload file → S3 Bucket → triggers → Lambda Function → logs to → Cloud
 
 ---
 
-## Part 2 — Create the Lambda Function
+## Part 2: Create the Lambda Function
 
 1. Go to **Lambda** → **Create function**
 2. Select **Author from scratch**
@@ -61,7 +61,7 @@ Click **Deploy**.
 
 ---
 
-## Part 3 — Add the S3 Trigger
+## Part 3: Add the S3 Trigger
 
 1. In your Lambda function, click **Add trigger**
 2. Select **S3**
@@ -75,7 +75,7 @@ You should now see the S3 trigger appear in the function overview diagram.
 
 ---
 
-## Part 4 — Test It
+## Part 4: Test It
 
 ### Upload a file
 
@@ -97,7 +97,7 @@ You should now see the S3 trigger appear in the function overview diagram.
 
 ---
 
-## Part 5 — Test with a JSON Event (Optional)
+## Part 5: Test with a JSON Event (Optional)
 
 You can simulate an S3 trigger without uploading a file:
 
@@ -118,7 +118,7 @@ You can simulate an S3 trigger without uploading a file:
 | S3 Event Notification | S3 automatically calls Lambda when a file is uploaded |
 | Lambda Trigger | Lambda is invoked with the event payload describing the upload |
 | CloudWatch Logs | Every `print()` in your Lambda is captured as a log entry |
-| Event-driven architecture | No server polling — the upload *event* drives the execution |
+| Event-driven architecture | No server polling: the upload *event* drives the execution |
 
 ---
 

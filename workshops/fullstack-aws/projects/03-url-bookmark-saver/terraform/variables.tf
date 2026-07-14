@@ -36,6 +36,11 @@ variable "created_date" {
   type        = string
 }
 
+variable "lambda_role_arn" {
+  description = "ARN of the shared Lambda execution role your instructor pre-created for the cohort. You don't create your own IAM role."
+  type        = string
+}
+
 locals {
   prefix     = "student-${var.student_name}"
   account_id = data.aws_caller_identity.current.account_id

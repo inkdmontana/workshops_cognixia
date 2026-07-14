@@ -27,6 +27,10 @@ on:
         description: 'AWS region to deploy into'
         required: false
         default: 'us-east-1'
+      created_date:
+        description: 'Date for the `date` tag, format dd-mmm-yyyy (e.g. 12-Jul-2026)'
+        required: false
+        default: ''
       aws_access_key_id:
         description: 'AWS Access Key ID — leave blank to use repo secret AWS_ACCESS_KEY_ID'
         required: false
@@ -40,6 +44,7 @@ env:
   PROJECT_DIR: projects/04-architecture-diagram
   AWS_REGION: ${{ inputs.aws_region || vars.ARCFLOW_AWS_REGION || 'us-east-1' }}
   STUDENT_NAME: ${{ inputs.student_name || vars.ARCFLOW_STUDENT_NAME }}
+  CREATED_DATE: ${{ inputs.created_date || vars.ARCFLOW_CREATED_DATE }}
 
 # ── Stage 1: Lint ─────────────────────────────────────────────────────────────
 jobs:
@@ -198,13 +203,17 @@ jobs:
             echo "::error::Provide student_name as a workflow input or set repo variable ARCFLOW_STUDENT_NAME."
             exit 1
           fi
+          if [ -z "${CREATED_DATE}" ]; then
+            echo "::error::Provide created_date as a workflow input or set repo variable ARCFLOW_CREATED_DATE (format dd-mmm-yyyy)."
+            exit 1
+          fi
           aws sts get-caller-identity
 
       - name: Deploy application
         working-directory: ${{ env.PROJECT_DIR }}
         env:
           CI: true
-        run: bash scripts/deploy.sh --name "$STUDENT_NAME" --region "$AWS_REGION"
+        run: bash scripts/deploy.sh --name "$STUDENT_NAME" --region "$AWS_REGION" --date "$CREATED_DATE"
 
       - name: Capture Terraform outputs
         id: capture_outputs
