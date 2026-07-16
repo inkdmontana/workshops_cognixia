@@ -36,6 +36,7 @@ Upload file → S3 Bucket → triggers → Lambda Function → logs to → Cloud
    - Function name: `student-s3-logger`
    - Runtime: **Python 3.12**
    - Region: **us-east-1**
+   - Additional settings -> Custom execution role -> `arn:aws:iam::279249498881:role/quicklabs-fullstack-shared-lambda-exec`
 4. Click **Create function**
 
 ### Add the code
